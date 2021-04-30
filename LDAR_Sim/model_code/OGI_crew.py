@@ -35,8 +35,11 @@ class OGI_crew:
         self.timeseries = timeseries
         self.deployment_days = deployment_days
         self.crewstate = {'id': id}
-        self.crewstate['lat'] = 0.0
-        self.crewstate['lon'] = 0.0
+        
+        # set the crewstate location at a random site
+        starting_site_index = np.random.choice(range(len(self.state['sites'])))
+        self.crewstate['lat'] = self.state['sites'][starting_site_index]['lat']
+        self.crewstate['lon'] = self.state['sites'][starting_site_index]['lon']
         self.worked_today = False
         self.rollover = []
         return
