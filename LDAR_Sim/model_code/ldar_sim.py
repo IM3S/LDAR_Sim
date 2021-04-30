@@ -111,6 +111,9 @@ class LdarSim:
                     'Simulation terminated: One or more sites is too'
                     'far West and is outside the spatial bounds of '
                     'your weather data!')
+                    
+            # Append visit cost variable for use in ranking sites to choose
+            site.update({'rank_cost':0.0})
 
         # Additional timeseries variables
         timeseries['total_daily_cost'] = np.zeros(params['timesteps'])
