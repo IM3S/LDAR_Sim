@@ -235,10 +235,39 @@ class OGI_crew:
                 site['OGI_missed_leaks'] += 1
 
         self.state['t'].current_date += timedelta(minutes=int(site['OGI_time']))
-        self.state['t'].current_date += timedelta(
-            minutes=int(
-                self.state['offsite_times']
-                [np.random.randint(0, len(self.state['offsite_times']))]))
+        self.state['t'].current_date += self.calc_offsite_time (site)
         self.timeseries['OGI_sites_visited'][self.state['t'].current_timestep] += 1
 
         return
+        
+    def calc_offsite_time(self, site):
+        """
+        Calculate the offsite time for this crew, this encompasses both travel and other non-survey activities
+        
+        sample_empirical: this uses a traditional sample from an offsite_time distribution.
+        distance: this uses a distance based time calculation that multiplies the distance between sites by
+             an empirical constant that relates the crow distance to a real driving time (speed limits, hazards,
+             windy roads, etc.). This constant will be larger in regions with poor road access and less in
+             regions with fast, well maintained roads.
+        """
+        if self.parameters['methods']['OGI']['offsite_time_method'] == 'sample_empirical':
+            travel_time = timedelta(minutes=int(self.state['offsite_times']
+                                    [np.random.randint(0, len(self.state['offsite_times']))]))
+        
+        elif self.parameters['methods']['OGI']['offsite_time_method'] == 'crow_distance':
+            distance = haversine_distance (lat1 = self.crewstate['lat'],
+                                           lon1 = self.crewstate['lon'],
+                                           lat2 = site['lat'],
+                                           lon2 = site['lon'])
+            travel_time = timedelta(minutes = distance * self.parameters['methods']['OGI']['offsite_time_per_km'])
+        
+        return(travel_time)
+        
+                
+                
+                
+                
+                
+                
+                
+                
