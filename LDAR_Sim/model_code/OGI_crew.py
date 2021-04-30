@@ -237,7 +237,10 @@ class OGI_crew:
         self.state['t'].current_date += timedelta(minutes=int(site['OGI_time']))
         self.state['t'].current_date += self.calc_offsite_time (site)
         self.timeseries['OGI_sites_visited'][self.state['t'].current_timestep] += 1
-
+        
+        # Move the crew to the location of this site
+        self.crewstate['lat'] = site['lat']
+        self.crewstate['lon'] = site['lon']
         return
         
     def calc_offsite_time(self, site):
