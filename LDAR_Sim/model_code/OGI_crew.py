@@ -146,14 +146,10 @@ class OGI_crew:
     def choose_site(self):
         """
         Choose a site to survey.
-
         """
-
-        # Sort all sites based on a neglect ranking
-        self.state['sites'] = sorted(
-            self.state['sites'],
-            key=lambda k: k['OGI_t_since_last_LDAR'],
-            reverse=True)
+        
+        # Sort all sites based on the projected rank cost 
+        self.rank_site_visit_cost()
 
         facility_ID = None  # The facility ID gets assigned if a site is found
         found_site = False  # The found site flag is updated if a site is found
@@ -193,6 +189,55 @@ class OGI_crew:
                         site['attempted_today_OGI?'] = True
 
         return (facility_ID, found_site, site)
+
+    def rank_site_visit_cost(self):
+        """
+        Rank the visit cost for the sites based on the chosen cost ranking method. To be clear, visit
+        cost is a unitless cost variable that is only used to allow agents more intelligent choices about
+        what site to visit next.
+        
+        The following methods are implemented
+        neglect: this ranks the sites through the traditional neglect ranking method that sorts the time
+                 since last LDAR and starts by choosing sites that have been most neglected.
+        crow_distance: this ranks the sites based on a cost that linearly relates to the pure distance
+                 between the two sites.
+        neglect_crow_distance: this ranks the sites based on a mix of neglect and crow distance to better
+                 represent a decision making process whereby the crews prioritize sites that are both
+                 close and ripe for LDAR. There are 2 parameters to adjust that affect the relative
+                 strength of each effect in decision making.
+        """
+            
+        for site in self.state['sites']:
+            if self.parameters['methods']['OGI']['rank_method'] == 'neglect':
+                # Neglect visit cost ranking
+                site['rank_cost'] = site['OGI_t_since_last_LDAR']
+        
+            elif self.parameters['methods']['OGI']['rank_method'] == 'crow_distance':
+                # Crow distance visit cost ranking
+                site['rank_cost'] = haversine_distance (lat1 = self.crewstate['lat'],
+                                                        lon1 = self.crewstate['lon'],
+                                                        lat2 = site['lat'],
+                                                        lon2 = site['lon'])
+                                                           
+            elif self.parameters['methods']['OGI']['rank_method'] == 'neglect_crow_distance':
+                # Neglect + crow distance visit cost ranking
+                distance_cost = (self.parameters['methods']['OGI']['rank_cost_crow_distance'] *
+                                        haversine_distance (lat1 = self.crewstate['lat'],
+                                                            lon1 = self.crewstate['lon'],
+                                                            lat2 = site['lat'],
+                                                            lon2 = site['lon'])
+                neglect_cost = (self.parameters['methods']['OGI']['rank_cost_neglect'] * 
+                                site['OGI_t_since_last_LDAR'])
+                site['rank_cost'] = distance_cost + neglect_cost
+        
+        
+        # Reverse rank by unitless rank cost
+        self.state['sites'] = sorted(
+                self.state['sites'],
+                key=lambda k: k['rank_cost'],
+                reverse=True)
+                
+        return
 
     def visit_site(self, site):
         """
