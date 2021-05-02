@@ -24,6 +24,8 @@ from batch_reporting import BatchReporting
 from ldar_sim_run import ldar_sim_run
 import pandas as pd
 import os
+import json
+import yaml
 import datetime
 import warnings
 import multiprocessing as mp
@@ -39,16 +41,41 @@ if __name__ == '__main__':
     output_directory = os.path.abspath(root_dir) + "/outputs/"
     # Programs to compare; Position one should be the reference program (P_ref)
     program_list = ['P_ref', 'P_base']
+    
+    # Specify paths to parameter files
+    parameter_files = {
+        'P_ref': ['P_ref.txt']
+        'P_base': ['P_base.txt']
+    }
 
     # -----------------------------Set up programs----------------------------------
     programs = []
 
     warnings.filterwarnings('ignore')    # Temporarily mute warnings
 
-    for p in range(len(program_list)):
-        file = wd + program_list[p] + '.txt'
-        exec(open(file).read())
-        programs.append(eval(program_list[p]))
+    for program in parameter_files:
+        program_parameters = {}
+        for i in range(len(program)):
+            # Accumulate parameters from multiple parameter files
+            file = os.path.join(wd, program[i])
+            extension = file.split('.')[-1]
+            
+            # Read in a json file
+            if extension == 'json':
+                with open(file, 'r') as f:
+                    params = json.loads(f.read())
+        
+            # Alternatively read in a yaml file
+            elif extension == 'yaml' or extension == 'yml':
+                with open(file, 'r') as f:
+                    params = yaml.loads(f.read())
+        
+            else:
+                sys.exit('Invalid parameter file found: ' + file)
+        
+            program_parameters.update(params)
+        
+        programs.append(params)
 
     n_processes = programs[0]['n_processes']
     print_from_simulations = programs[0]['print_from_simulations']
