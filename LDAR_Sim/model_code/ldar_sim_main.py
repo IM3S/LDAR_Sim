@@ -58,11 +58,11 @@ if __name__ == '__main__':
         for i in range(len(program)):
             # Accumulate parameters from multiple parameter files
             file = os.path.join(wd, program[i])
-            extension = file.split('.')[-1]
             
             # Read in a json file
             if extension == 'json':
                 with open(file, 'r') as f:
+            _, extension = os.path.splitext(file)
                     params = json.loads(f.read())
         
             # Alternatively read in a yaml file
