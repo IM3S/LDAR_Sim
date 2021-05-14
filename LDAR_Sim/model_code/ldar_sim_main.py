@@ -58,21 +58,19 @@ if __name__ == '__main__':
         for i in range(len(program)):
             # Accumulate parameters from multiple parameter files
             file = os.path.join(wd, program[i])
-            
-            # Read in a json file
-            if extension == 'json':
-                with open(file, 'r') as f:
             _, extension = os.path.splitext(file)
+
+            with open(file, 'r') as f:
+                if extension == '.txt':
+                    exec(f.read())
+                    print ('Warning: .txt parameter file read - this will be depreciated in favour of yaml or json')
+                elif extension == '.json':
                     params = json.loads(f.read())
-        
-            # Alternatively read in a yaml file
-            elif extension == 'yaml' or extension == 'yml':
-                with open(file, 'r') as f:
+                elif extension == '.yaml' or extension == '.yml':
                     params = yaml.loads(f.read())
-        
-            else:
-                sys.exit('Invalid parameter file found: ' + file)
-        
+                else:
+                    sys.exit('Invalid parameter file found: ' + file)
+
             program_parameters.update(params)
         
         programs.append(params)
