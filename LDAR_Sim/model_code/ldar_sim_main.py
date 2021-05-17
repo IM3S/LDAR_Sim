@@ -38,7 +38,7 @@ if __name__ == '__main__':
     wd = os.path.abspath(root_dir) + "/inputs_template/"
     output_directory = os.path.abspath(root_dir) + "/outputs/"
     # Programs to compare; Position one should be the reference program (P_ref)
-    program_list = ['P_ref', 'P_alt']  # , 'P_alt2']
+    program_list = ['P_ref', 'P_base', 'P_alt', 'P_alt2', 'P_cont']
 
     # -----------------------------Set up programs----------------------------------
     programs = []
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 reporting_data.batch_plots()
 
     # Write metadata
-    metadata = open(output_directory + '/metadata.txt', 'w')
+    metadata = open(output_directory + '/_metadata.txt', 'w')
     metadata.write(str(programs) + '\n' +
                    str(datetime.datetime.now()))
 
