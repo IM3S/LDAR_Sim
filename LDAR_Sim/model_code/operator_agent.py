@@ -34,8 +34,6 @@ class OperatorAgent:
         self.init_mean_leaks = np.mean(self.state['init_leaks'])
         self.init_sum_leaks = np.sum(self.state['init_leaks'])
         self.n_sites = len(self.state['sites'])
-        self.timeseries['operator_redund_tags'] = np.zeros(self.parameters['timesteps'])
-        self.timeseries['operator_tags'] = np.zeros(self.parameters['timesteps'])
 
         return
 
@@ -53,7 +51,8 @@ class OperatorAgent:
                 if leak['status'] == 'active':
                     prob_detect = self.parameters['LPR'] * 7 / leak_term
                     prob_detect  \
-                        += self.parameters['max_det_op'] * (leak['rate'] / (self.state['max_rate']))
+                        += self.parameters['max_det_op'] \
+                        * (leak['rate'] / (self.state['max_leak_rate']))
                     if prob_detect > 1:
                         prob_detect = 1
                     if prob_detect < 0:
