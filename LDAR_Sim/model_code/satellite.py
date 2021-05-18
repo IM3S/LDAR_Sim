@@ -207,7 +207,7 @@ class satellite:
         U = windspeed[ti,lat_idx,lon_idx]
         Q_min = 5.79 * (1.39/U)
         # set MDL to 0 #####
-        Q_min = 0 
+        # Q_min = 0 
         
         return (site_cum_rate > Q_min)
                                        
