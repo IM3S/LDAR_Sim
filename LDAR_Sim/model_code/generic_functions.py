@@ -23,6 +23,8 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import json
+import yaml
 from osgeo import gdal
 from osgeo import osr
 from mpl_toolkits.basemap import Basemap
@@ -245,3 +247,32 @@ def check_ERA5_file(wd, target_file):
             print("Authentication Failed or Server Unavailable. Exiting")
             sys.exit()
         print("Weather data download complete")
+
+def read_parameter_file (filename, verbose = True):
+    """
+    Function to read a parameter file
+    :param filename: the full path to the parameter file
+    :param verbose: if True, prints extra messages
+    :return: dictionary of parameters read from the parameter file
+    """
+    _, extension = os.path.splitext(filename)
+    params = {}
+    with open(filename, 'r') as f:
+        if verbose:
+            print('Reading parameter file: ' + filename)
+
+        if extension == '.txt':
+            exec(f.read())
+            if verbose:
+                print('Warning: .txt parameter file read and executed - this will be depreciated in favour of yaml or json')
+
+            base_filename = os.path.basename(filename)
+            params = eval(base_filename.rstrip(extension))
+        elif extension == '.json':
+            params = json.loads(f.read())
+        elif extension == '.yaml' or extension == '.yml':
+            params = yaml.load(f.read())
+        else:
+            sys.exit('Invalid parameter file found: ' + filename)
+
+    return(params)
