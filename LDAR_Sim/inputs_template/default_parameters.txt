@@ -1,21 +1,9 @@
 parameters = {
     'programs': {
         'P_ref': {
-            'parameter_files': ['P_ref.txt'],
-            'methods': {
-                'OGI': {
-                    'name': 'OGI',
-                    'n_crews': 1,
-                    'min_temp': -20,
-                    'max_wind': 10,
-                    'max_precip': 0.1,
-                    'max_workday': 8,
-                    'cost_per_day': 2500,
-                    'reporting_delay': 2,
-                    'MDL': [0.01275, 2.78e-6],
-                'consider_daylight': False
-                }
-            },
+            'parameter_files': [],
+            'method_files': ['default_OGI.txt'],
+            'methods': {},
             'program_name': 'P_ref',
             'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
             'timesteps': 1000,  	# Up to ~5600 for 16 year nc file
@@ -91,6 +79,7 @@ parameters = {
         },
         'P_alt': {
             'parameter_files': ['P_alt.txt'],
+            'method_files': [],
             'methods': {
                 'aircraft': {
                     'name': 'aircraft',
@@ -158,6 +147,7 @@ parameters = {
         },
         'P_cont': {
             'parameter_files': ['P_cont.txt'],
+            'method_files': [],
             'methods': {
                 'fixed': {
                     'name': 'fixed',

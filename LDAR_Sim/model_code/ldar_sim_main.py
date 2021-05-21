@@ -57,6 +57,13 @@ if __name__ == '__main__':
             # Accumulate parameters for each program
             filename = os.path.join(parameters['wd'], parameter_file)
             parameters['programs'][program].update(read_parameter_file(filename))
+        # Accumulate methods from method files
+        if 'method_files' in parameters['programs'][program]:
+            for method_file in parameters['programs'][program]['method_files']:
+                if not os.path.isabs(method_file):
+                    method_file = os.path.join (parameters['wd'], method_file)
+
+                parameters['programs'][program]['methods'].update(read_parameter_file(method_file))
 
     # Check whether ERA5 data is already in the working directory and download data if not
     check_ERA5_file(parameters['wd'], parameters['programs'][parameters['reference_program']]['weather_file'])
