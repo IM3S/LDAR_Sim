@@ -24,12 +24,10 @@ from batch_reporting import BatchReporting
 from ldar_sim_run import ldar_sim_run
 import pandas as pd
 import os
-import json
-import yaml
 import datetime
 import warnings
 import multiprocessing as mp
-from generic_functions import check_ERA5_file
+from generic_functions import check_ERA5_file, read_parameter_file
 
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
@@ -39,51 +37,24 @@ if __name__ == '__main__':
     root_dir = str(src_dir_path.parent)
     wd = os.path.abspath(root_dir) + "/inputs_template/"
     output_directory = os.path.abspath(root_dir) + "/outputs/"
-    # Programs to compare; Position one should be the reference program (P_ref)
-    program_list = ['P_ref', 'P_base']
-    
-    # Specify paths to parameter files
-    parameter_files = {
-        'P_ref': ['P_ref.txt']
-        'P_base': ['P_base.txt']
-    }
+    parameters = read_parameter_file(os.path.join(wd,'parameters.txt'))
 
     # -----------------------------Set up programs----------------------------------
-    programs = []
-
     warnings.filterwarnings('ignore')    # Temporarily mute warnings
-
-    for program in parameter_files:
-        program_parameters = {}
-        for i in range(len(program)):
-            # Accumulate parameters from multiple parameter files
-            file = os.path.join(wd, program[i])
-            _, extension = os.path.splitext(file)
-
-            with open(file, 'r') as f:
-                if extension == '.txt':
-                    exec(f.read())
-                    print ('Warning: .txt parameter file read - this will be depreciated in favour of yaml or json')
-                elif extension == '.json':
-                    params = json.loads(f.read())
-                elif extension == '.yaml' or extension == '.yml':
-                    params = yaml.loads(f.read())
-                else:
-                    sys.exit('Invalid parameter file found: ' + file)
-
-            program_parameters.update(params)
+    for program in parameters['programs']:
+        for parameter_file in parameters['programs'][program]['parameter_files']:
+            # Accumulate parameters for each program
+            filename = os.path.join (wd, parameter_file)
+            parameters['programs'][program].update(read_parameter_file(filename))
         
-        programs.append(params)
-
-    n_processes = programs[0]['n_processes']
-    print_from_simulations = programs[0]['print_from_simulations']
-    n_simulations = programs[0]['n_simulations']
-    spin_up = programs[0]['spin_up']
-    ref_program = program_list[0]
-    write_data = programs[0]['write_data']
+    n_processes = parameters['programs'][parameters['reference_program']]['n_processes']
+    print_from_simulations = parameters['programs'][parameters['reference_program']]['print_from_simulations']
+    n_simulations = parameters['programs'][parameters['reference_program']]['n_simulations']
+    spin_up = parameters['programs'][parameters['reference_program']]['spin_up']
+    write_data = parameters['programs'][parameters['reference_program']]['write_data']
 
     # Check whether ERA5 data is already in the working directory and download data if not
-    check_ERA5_file(wd, programs[0]['weather_file'])
+    check_ERA5_file(wd, parameters['programs'][parameters['reference_program']]['weather_file'])
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -91,12 +62,12 @@ if __name__ == '__main__':
     # Set up simulation parameter files
     simulations = []
     for i in range(n_simulations):
-        for j in range(len(programs)):
-            opening_message = "Simulating program {} of {} ; simulation {} of {}".format(
-                j + 1, len(programs), i + 1, n_simulations
+        for program in parameters['programs']:
+            opening_message = "Simulating program {}; simulation {} of {}".format(
+                program, i + 1, n_simulations
             )
             simulations.append(
-                [{'i': i, 'program': programs[j],
+                [{'i': i, 'program': parameters['programs'][program],
                   'wd': wd,
                   'output_directory':output_directory,
                   'opening_message': opening_message,
@@ -111,17 +82,17 @@ if __name__ == '__main__':
     if write_data:
         # Create a data object...
         reporting_data = BatchReporting(
-            output_directory, programs[0]['start_year'],
-            spin_up, ref_program)
+            output_directory, parameters['programs'][parameters['reference_program']]['start_year'],
+            spin_up, parameters['reference_program'])
         if n_simulations > 1:
             reporting_data.program_report()
-            if len(programs) > 1:
+            if len(parameters) > 1:
                 reporting_data.batch_report()
                 reporting_data.batch_plots()
 
     # Write metadata
     metadata = open(output_directory + '/metadata.txt', 'w')
-    metadata.write(str(programs) + '\n' +
+    metadata.write(str(list(parameters.values())) + '\n' +
                    str(datetime.datetime.now()))
 
     metadata.close()
