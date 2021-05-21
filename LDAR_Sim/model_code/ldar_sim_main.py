@@ -55,54 +55,48 @@ if __name__ == '__main__':
     for program in parameters['programs']:
         for parameter_file in parameters['programs'][program]['parameter_files']:
             # Accumulate parameters for each program
-            filename = os.path.join(wd, parameter_file)
+            filename = os.path.join(parameters['wd'], parameter_file)
             parameters['programs'][program].update(read_parameter_file(filename))
 
-    n_processes = parameters['programs'][parameters['reference_program']]['n_processes']
-    print_from_simulations = parameters['programs'][parameters['reference_program']]['print_from_simulations']
-    n_simulations = parameters['programs'][parameters['reference_program']]['n_simulations']
-    spin_up = parameters['programs'][parameters['reference_program']]['spin_up']
-    write_data = parameters['programs'][parameters['reference_program']]['write_data']
-
     # Check whether ERA5 data is already in the working directory and download data if not
-    check_ERA5_file(wd, parameters['programs'][parameters['reference_program']]['weather_file'])
+    check_ERA5_file(parameters['wd'], parameters['programs'][parameters['reference_program']]['weather_file'])
 
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    if not os.path.exists(parameters['output_directory']):
+        os.makedirs(parameters['output_directory'])
 
     # Set up simulation parameter files
     simulations = []
-    for i in range(n_simulations):
-        for program in parameters['programs']:
+    for i in range(parameters['n_simulations']):
+        for program in parameters['simulation_programs']:
             opening_message = "Simulating program {}; simulation {} of {}".format(
-                program, i + 1, n_simulations
+                program, i + 1, parameters['n_simulations']
             )
             simulations.append(
                 [{'i': i, 'program': parameters['programs'][program],
-                  'wd': wd,
-                  'output_directory': output_directory,
+                  'wd': parameters['wd'],
+                  'output_directory': parameters['output_directory'],
                   'opening_message': opening_message,
-                  'print_from_simulation': print_from_simulations}])
+                  'print_from_simulation': parameters['print_from_simulations']}])
 
     # ldar_sim_run(simulations[1][0])
     # Perform simulations in parallel
-    with mp.Pool(processes = n_processes) as p:
+    with mp.Pool(processes = parameters['n_processes']) as p:
         res = p.starmap(ldar_sim_run, simulations)
 
     # Do batch reporting
-    if write_data:
+    if parameters['write_data']:
         # Create a data object...
         reporting_data = BatchReporting(
-            output_directory, parameters['programs'][parameters['reference_program']]['start_year'],
-            spin_up, parameters['reference_program'])
-        if n_simulations > 1:
+            parameters['output_directory'], parameters['programs'][parameters['reference_program']]['start_year'],
+            parameters['spin_up'], parameters['reference_program'])
+        if parameters['n_simulations'] > 1:
             reporting_data.program_report()
             if len(parameters) > 1:
                 reporting_data.batch_report()
                 reporting_data.batch_plots()
 
     # Write metadata
-    metadata = open(output_directory + '/metadata.txt', 'w')
+    metadata = open(parameters['output_directory'] + '/metadata.txt', 'w')
     metadata.write(str(list(parameters['programs'].values())) + '\n' +
                    str(datetime.datetime.now()))
 
@@ -113,6 +107,6 @@ if __name__ == '__main__':
     if 'program' in sa_df.columns:
         for program in sa_df['program'].unique():
             sa_out = sa_df.loc[sa_df['program'] == program, :]
-            sa_outfile_name = os.path.join(wd, 'sensitivity_analysis',
+            sa_outfile_name = os.path.join(parameters['wd'], 'sensitivity_analysis',
                                            'sensitivity_' + program + '.csv')
             sa_out.to_csv(sa_outfile_name, index=False)
