@@ -1,0 +1,292 @@
+n_processes: null
+n_simulations: 2
+output_directory: ..//outputs//
+print_from_simulations: true
+programs:
+  P_alt:
+    LPR: 0.0065
+    NRd: 150
+    consider_operator: false
+    consider_venting: true
+    count_file: leak_counts.csv
+    infrastructure_file: facility_list_template.csv
+    leak_file: leak_rates.csv
+    leak_rate_dist:
+    - lognorm
+    - -2.776
+    - 1.462
+    - kilogram
+    - hour
+    make_maps: true
+    make_plots: true
+    max_det_op: 0.0
+    max_leak_rate: 100
+    methods:
+      OGI_FU:
+        MDL:
+        - 0.01275
+        - 2.78e-06
+        consider_daylight: false
+        cost_per_day: 2500
+        max_precip: 0.1
+        max_wind: 10
+        max_workday: 8
+        min_temp: -20
+        n_crews: 1
+        name: OGI_FU
+        reporting_delay: 2
+      aircraft:
+        MDL: 0.2
+        QE: 0
+        consider_daylight: false
+        cost_per_day: 10000
+        follow_up_prop: 1
+        follow_up_thresh:
+        - 0.1
+        - proportion
+        max_precip: 1
+        max_wind: 10
+        max_workday: 8
+        min_temp: -30
+        n_crews: 1
+        name: aircraft
+        reporting_delay: 2
+        t_lost_per_site: 10
+    n_processes: null
+    n_simulations: 2
+    operator_strength: 0
+    parameter_files:
+    - P_alt.txt
+    print_from_simulations: true
+    program_name: P_alt
+    repair_cost: 200
+    repair_delay: 14
+    sensitivity:
+      batch:
+      - true
+      - 2
+      perform: false
+      program: OGI
+    site_samples:
+    - true
+    - 500
+    spin_up: 0
+    start_year: 2017
+    subtype_distributions:
+    - false
+    - subtype_distributions.csv
+    subtype_times:
+    - false
+    - subtype_times.csv
+    t_offsite_file: time_offsite_ground.csv
+    timesteps: 1000
+    use_empirical_rates: false
+    vent_file: site_rates.csv
+    verification_cost: 25
+    weather_file: ERA5_AB_1x1_hourly_2015_2019.nc
+    write_data: true
+  P_base:
+    LPR: 0.0065
+    NRd: 150
+    consider_operator: false
+    consider_venting: true
+    count_file: leak_counts.csv
+    infrastructure_file: facility_list_template.csv
+    leak_file: leak_rates.csv
+    leak_rate_dist:
+    - lognorm
+    - -2.776
+    - 1.462
+    - kilogram
+    - hour
+    make_maps: true
+    make_plots: true
+    max_det_op: 0.0
+    max_leak_rate: 100
+    methods: {}
+    n_processes: null
+    n_simulations: 2
+    operator_strength: 0
+    parameter_files:
+    - P_base.txt
+    print_from_simulations: true
+    program_name: P_base
+    repair_cost: 200
+    repair_delay: 14
+    sensitivity:
+      batch:
+      - true
+      - 2
+      perform: false
+      program: OGI
+    site_samples:
+    - true
+    - 500
+    spin_up: 0
+    start_year: 2017
+    subtype_distributions:
+    - true
+    - subtype_distributions.csv
+    subtype_times:
+    - false
+    - subtype_times.csv
+    t_offsite_file: time_offsite_ground.csv
+    timesteps: 1000
+    use_empirical_rates: false
+    vent_file: site_rates.csv
+    verification_cost: 25
+    weather_file: ERA5_AB_1x1_hourly_2015_2019.nc
+    write_data: true
+  P_cont:
+    LPR: 0.0065
+    NRd: 150
+    consider_operator: false
+    consider_venting: true
+    count_file: leak_counts.csv
+    infrastructure_file: facility_list_template.csv
+    leak_file: leak_rates.csv
+    leak_rate_dist:
+    - lognorm
+    - -2.776
+    - 1.462
+    - kilogram
+    - hour
+    make_maps: true
+    make_plots: true
+    max_det_op: 0.0
+    max_leak_rate: 100
+    methods:
+      OGI_FU:
+        MDL:
+        - 0.01275
+        - 2.78e-06
+        consider_daylight: false
+        cost_per_day: 1500
+        max_precip: 100
+        max_wind: 100
+        max_workday: 10
+        min_temp: -100
+        n_crews: 1
+        name: OGI_FU
+        reporting_delay: 2
+      fixed:
+        MDL: 0.01
+        QE: 0
+        consider_daylight: false
+        cost_per_day: 1
+        follow_up_prop: 1
+        follow_up_thresh:
+        - 0
+        - absolute
+        max_precip: 100
+        max_wind: 100
+        min_temp: -100
+        name: fixed
+        reporting_delay: 2
+        time_to_detection: 7
+        up_front_cost: 500
+    n_processes: null
+    n_simulations: 2
+    operator_strength: 0
+    parameter_files:
+    - P_cont.txt
+    print_from_simulations: true
+    program_name: P_cont
+    repair_cost: 200
+    repair_delay: 14
+    sensitivity:
+      batch:
+      - true
+      - 2
+      perform: false
+      program: OGI
+    site_samples:
+    - true
+    - 500
+    spin_up: 0
+    start_year: 2017
+    subtype_distributions:
+    - false
+    - subtype_distributions.csv
+    subtype_times:
+    - false
+    - subtype_times.csv
+    t_offsite_file: time_offsite_ground.csv
+    timesteps: 1000
+    use_empirical_rates: false
+    vent_file: site_rates.csv
+    verification_cost: 25
+    weather_file: ERA5_AB_1x1_hourly_2015_2019.nc
+    write_data: true
+  P_ref:
+    LPR: 0.0065
+    NRd: 150
+    consider_operator: false
+    consider_venting: true
+    count_file: leak_counts.csv
+    infrastructure_file: facility_list_template.csv
+    leak_file: leak_rates.csv
+    leak_rate_dist:
+    - lognorm
+    - -2.776
+    - 1.462
+    - kilogram
+    - hour
+    make_maps: true
+    make_plots: true
+    max_det_op: 0.0
+    max_leak_rate: 100
+    methods:
+      OGI:
+        MDL:
+        - 0.01275
+        - 2.78e-06
+        consider_daylight: false
+        cost_per_day: 2500
+        max_precip: 0.1
+        max_wind: 10
+        max_workday: 8
+        min_temp: -20
+        n_crews: 1
+        name: OGI
+        reporting_delay: 2
+    n_processes: null
+    n_simulations: 2
+    operator_strength: 0
+    parameter_files:
+    - P_ref.txt
+    print_from_simulations: true
+    program_name: P_ref
+    repair_cost: 200
+    repair_delay: 14
+    sensitivity:
+      batch:
+      - true
+      - 2
+      perform: false
+      program: OGI
+    site_samples:
+    - true
+    - 500
+    spin_up: 0
+    start_year: 2017
+    subtype_distributions:
+    - false
+    - subtype_distributions.csv
+    subtype_times:
+    - false
+    - subtype_times.csv
+    t_offsite_file: time_offsite_ground.csv
+    timesteps: 1000
+    use_empirical_rates: false
+    vent_file: site_rates.csv
+    verification_cost: 25
+    weather_file: ERA5_AB_1x1_hourly_2015_2019.nc
+    write_data: true
+reference_program: P_ref
+simulation_programs:
+- P_ref
+- P_base
+spin_up: 0
+wd: ..//inputs_template//
+write_data: true
