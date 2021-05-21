@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     # Write metadata
     metadata = open(output_directory + '/metadata.txt', 'w')
-    metadata.write(str(list(parameters.values())) + '\n' +
+    metadata.write(str(list(parameters['programs'].values())) + '\n' +
                    str(datetime.datetime.now()))
 
     metadata.close()
