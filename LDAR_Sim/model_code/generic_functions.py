@@ -271,7 +271,7 @@ def read_parameter_file (filename, verbose = True):
         elif extension == '.json':
             params = json.loads(f.read())
         elif extension == '.yaml' or extension == '.yml':
-            params = yaml.load(f.read())
+            params = yaml.load(f.read(), Loader=yaml.FullLoader)
         else:
             sys.exit('Invalid parameter file found: ' + filename)
 
