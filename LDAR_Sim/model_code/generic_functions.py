@@ -267,7 +267,7 @@ def read_parameter_file (filename, verbose = True):
                 print('Warning: .txt parameter file read and executed - this will be depreciated in favour of yaml or json')
 
             base_filename = os.path.basename(filename)
-            params = eval(base_filename.rstrip(extension))
+            params = eval(base_filename.replace(extension, ''))
         elif extension == '.json':
             params = json.loads(f.read())
         elif extension == '.yaml' or extension == '.yml':
