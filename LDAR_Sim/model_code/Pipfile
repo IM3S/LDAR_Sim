@@ -17,6 +17,7 @@ xlrd = "*"
 plotnine = "*"
 ephem = "*"
 gdal = {path = "../install/windows_python_wheels/GDAL-3.0.4-cp37-cp37m-win_amd64.whl"}
+pyyaml = "*"
 
 [requires]
 python_version = "3.7"
