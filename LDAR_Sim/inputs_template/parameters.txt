@@ -1,0 +1,11 @@
+parameters = {
+    'programs': {
+        'P_ref': {
+            'parameter_files': ['P_ref.txt'],
+        },
+        'P_base': {
+            'parameter_files': ['P_base.txt'],
+        },
+    },
+    'reference_program': 'P_ref',
+}
