@@ -104,4 +104,4 @@ if __name__ == '__main__':
             sa_out = sa_df.loc[sa_df['program'] == program, :]
             sa_outfile_name = os.path.join(wd, 'sensitivity_analysis',
                                            'sensitivity_' + program + '.csv')
-            sa_out.to_csv(sa_outfile_name, index = False)
+            sa_out.to_csv(sa_outfile_name, index=False)
