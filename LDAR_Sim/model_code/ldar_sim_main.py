@@ -47,8 +47,8 @@ if __name__ == '__main__':
     src_dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     src_dir = str(src_dir_path)
     root_dir = str(src_dir_path.parent)
-    wd = os.path.abspath(root_dir) + "/inputs_template/"
-    output_directory = os.path.abspath(root_dir) + "/outputs/"
+    parameters['wd'] = os.path.abspath(parameters['wd']) + '//'
+    parameters['output_directory'] = os.path.abspath(parameters['output_directory']) + '//'
 
     # -----------------------------Set up programs----------------------------------
     warnings.filterwarnings('ignore')  # Temporarily mute warnings
