@@ -27,7 +27,7 @@ import os
 import datetime
 import warnings
 import multiprocessing as mp
-from generic_functions import check_ERA5_file
+from generic_functions import check_ERA5_file, read_parameter_file
 
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
@@ -37,28 +37,24 @@ if __name__ == '__main__':
     root_dir = str(src_dir_path.parent)
     wd = os.path.abspath(root_dir) + "/inputs_template/"
     output_directory = os.path.abspath(root_dir) + "/outputs/"
-    # Programs to compare; Position one should be the reference program (P_ref)
-    program_list = ['P_ref', 'P_base', 'P_alt', 'P_alt2', 'P_cont']
+    parameters = read_parameter_file(os.path.join(wd, 'parameters.txt'))
 
     # -----------------------------Set up programs----------------------------------
-    programs = []
+    warnings.filterwarnings('ignore')  # Temporarily mute warnings
+    for program in parameters['programs']:
+        for parameter_file in parameters['programs'][program]['parameter_files']:
+            # Accumulate parameters for each program
+            filename = os.path.join(wd, parameter_file)
+            parameters['programs'][program].update(read_parameter_file(filename))
 
-    warnings.filterwarnings('ignore')    # Temporarily mute warnings
-
-    for p in range(len(program_list)):
-        file = wd + program_list[p] + '.txt'
-        exec(open(file).read())
-        programs.append(eval(program_list[p]))
-
-    n_processes = programs[0]['n_processes']
-    print_from_simulations = programs[0]['print_from_simulations']
-    n_simulations = programs[0]['n_simulations']
-    spin_up = programs[0]['spin_up']
-    ref_program = program_list[0]
-    write_data = programs[0]['write_data']
+    n_processes = parameters['programs'][parameters['reference_program']]['n_processes']
+    print_from_simulations = parameters['programs'][parameters['reference_program']]['print_from_simulations']
+    n_simulations = parameters['programs'][parameters['reference_program']]['n_simulations']
+    spin_up = parameters['programs'][parameters['reference_program']]['spin_up']
+    write_data = parameters['programs'][parameters['reference_program']]['write_data']
 
     # Check whether ERA5 data is already in the working directory and download data if not
-    check_ERA5_file(wd, programs[0]['weather_file'])
+    check_ERA5_file(wd, parameters['programs'][parameters['reference_program']]['weather_file'])
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -66,37 +62,37 @@ if __name__ == '__main__':
     # Set up simulation parameter files
     simulations = []
     for i in range(n_simulations):
-        for j in range(len(programs)):
-            opening_message = "Simulating program {} of {} ; simulation {} of {}".format(
-                j + 1, len(programs), i + 1, n_simulations
+        for program in parameters['programs']:
+            opening_message = "Simulating program {}; simulation {} of {}".format(
+                program, i + 1, n_simulations
             )
             simulations.append(
-                [{'i': i, 'program': programs[j],
+                [{'i': i, 'program': parameters['programs'][program],
                   'wd': wd,
-                  'output_directory':output_directory,
+                  'output_directory': output_directory,
                   'opening_message': opening_message,
                   'print_from_simulation': print_from_simulations}])
 
     # ldar_sim_run(simulations[1][0])
     # Perform simulations in parallel
-    with mp.Pool(processes=n_processes) as p:
+    with mp.Pool(processes = n_processes) as p:
         res = p.starmap(ldar_sim_run, simulations)
 
     # Do batch reporting
     if write_data:
         # Create a data object...
         reporting_data = BatchReporting(
-            output_directory, programs[0]['start_year'],
-            spin_up, ref_program)
+            output_directory, parameters['programs'][parameters['reference_program']]['start_year'],
+            spin_up, parameters['reference_program'])
         if n_simulations > 1:
             reporting_data.program_report()
-            if len(programs) > 1:
+            if len(parameters) > 1:
                 reporting_data.batch_report()
                 reporting_data.batch_plots()
 
     # Write metadata
-    metadata = open(output_directory + '/_metadata.txt', 'w')
-    metadata.write(str(programs) + '\n' +
+    metadata = open(output_directory + '/metadata.txt', 'w')
+    metadata.write(str(list(parameters.values())) + '\n' +
                    str(datetime.datetime.now()))
 
     metadata.close()
@@ -108,4 +104,4 @@ if __name__ == '__main__':
             sa_out = sa_df.loc[sa_df['program'] == program, :]
             sa_outfile_name = os.path.join(wd, 'sensitivity_analysis',
                                            'sensitivity_' + program + '.csv')
-            sa_out.to_csv(sa_outfile_name, index=False)
+            sa_out.to_csv(sa_outfile_name, index = False)
