@@ -55,8 +55,11 @@ if __name__ == '__main__':
     for program in parameters['programs']:
         for parameter_file in parameters['programs'][program]['parameter_files']:
             # Accumulate parameters for each program
-            filename = os.path.join(parameters['wd'], parameter_file)
-            parameters['programs'][program].update(read_parameter_file(filename))
+            if not os.path.isabs(parameter_file):
+                parameter_file = os.path.join(parameters['wd'], parameter_file)
+
+            parameters['programs'][program].update(read_parameter_file(parameter_file))
+
         # Accumulate methods from method files
         if 'method_files' in parameters['programs'][program]:
             for method_file in parameters['programs'][program]['method_files']:
