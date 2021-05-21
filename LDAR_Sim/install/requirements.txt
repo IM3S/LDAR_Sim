@@ -12,3 +12,4 @@ plotnine==0.7.1
 ephem
 gdal==3.2.1
 boto3 == 1.16.63
+pyyaml
