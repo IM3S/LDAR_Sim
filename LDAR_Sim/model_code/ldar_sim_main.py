@@ -24,6 +24,7 @@ from batch_reporting import BatchReporting
 from ldar_sim_run import ldar_sim_run
 import pandas as pd
 import os
+import sys
 import datetime
 import warnings
 import multiprocessing as mp
@@ -32,12 +33,22 @@ from generic_functions import check_ERA5_file, read_parameter_file
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
     # -----------------------------Global parameters--------------------------------
+    parameter_files = sys.argv[1:]
+    if len(parameter_files) == 0:
+        print('No parameter files supplied? Parameter files must be supplied as arguments')
+        print('Loading default parameters: default_parameters.yaml')
+        parameter_files = ['..//inputs_template//default_parameters.yaml']
+
+    parameters = {}
+    for parameter_file in parameter_files:
+        parameters.update(read_parameter_file(parameter_file))
+
+    # Set internal working directories
     src_dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     src_dir = str(src_dir_path)
     root_dir = str(src_dir_path.parent)
     wd = os.path.abspath(root_dir) + "/inputs_template/"
     output_directory = os.path.abspath(root_dir) + "/outputs/"
-    parameters = read_parameter_file(os.path.join(wd, 'parameters.txt'))
 
     # -----------------------------Set up programs----------------------------------
     warnings.filterwarnings('ignore')  # Temporarily mute warnings
