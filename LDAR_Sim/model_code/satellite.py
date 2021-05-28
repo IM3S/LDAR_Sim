@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------------
 # Program:     The LDAR Simulator (LDAR-Sim) 
 # File:        Satellite crew
@@ -44,12 +43,9 @@ class satellite:
 
         
         
-        ########################--------------This should move to the weather_lookup.py in the future--------------################	
-		# load pre-defined orbit grids, this is unique for each satellite, a function should be created to automatically calculate 
-        # grid based on the TLE_file/ the name of satellites 
         wd = self.parameters['working_directory']
         # load cloud cover data
-        cloud = self.parameters['methods']['satellite']['CloudCover']
+        cloud = self.parameters['weather_file']
         Dataset = nc.Dataset(wd + cloud,'r')
         self.cloudcover = Dataset.variables['tcc'][:]
         Dataset.close()
@@ -164,7 +160,7 @@ class satellite:
         site_lon = np.float16(site['lon'])
         
         lat_idx = geo_idx(site_lat,self.state['weather'].latitude)
-        lon_idx = geo_idx(site_lon,self.state['weather'].latitude)
+        lon_idx = geo_idx(site_lon,self.state['weather'].longitude)
         ti = self.state['t'].current_timestep
         
         # check daylight 
@@ -325,4 +321,3 @@ class satellite:
                                        
                                        
         return 
-                                       
