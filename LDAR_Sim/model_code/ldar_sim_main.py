@@ -25,6 +25,7 @@ from ldar_sim_run import ldar_sim_run
 import pandas as pd
 import os
 import sys
+import yaml
 import datetime
 import warnings
 import multiprocessing as mp
@@ -111,6 +112,10 @@ if __name__ == '__main__':
                    str(datetime.datetime.now()))
 
     metadata.close()
+
+    # Write complete parameter file to enable re-running of this simulation
+    with open(os.path.join(parameters['output_directory'], 'parameters.yaml'), 'w') as f:
+        f.write(yaml.dump(parameters, default_flow_style = False))
 
     # Write sensitivity analysis data on a program by program basis
     sa_df = pd.DataFrame(res)
