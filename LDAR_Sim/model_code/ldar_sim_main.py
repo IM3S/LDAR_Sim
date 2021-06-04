@@ -64,7 +64,7 @@ if __name__ == '__main__':
         if 'method_files' in parameters['programs'][program]:
             for method_file in parameters['programs'][program]['method_files']:
                 if not os.path.isabs(method_file):
-                    method_file = os.path.join (parameters['wd'], method_file)
+                    method_file = os.path.join(parameters['wd'], method_file)
 
                 parameters['programs'][program]['methods'].update(read_parameter_file(method_file))
 
