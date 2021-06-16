@@ -108,28 +108,28 @@ class LdarSim:
 
             site.update({'lat_index': min(
                 range(len(state['weather'].latitude)), key=lambda i: abs(
-                    state['weather'].latitude[i] - float(site['lat'])))})
+                    state['weather'].latitude[i] - np.float(site['lat'])))})
             site.update({'lon_index': min(
                 range(len(state['weather'].longitude)), key=lambda i: abs(
-                    state['weather'].longitude[i] - float(site['lon']) % 360))})
+                    state['weather'].longitude[i] - np.float(site['lon']) % 360))})
 
             # Check to make sure site is within range of grid-based data
-            if float(site['lat']) > max(state['weather'].latitude):
+            if np.float(site['lat']) > max(state['weather'].latitude):
                 sys.exit(
                     'Simulation terminated: One or more sites is too '
                     'far North and is outside the spatial bounds of '
                     'your weather data!')
-            if float(site['lat']) < min(state['weather'].latitude):
+            if np.float(site['lat']) < min(state['weather'].latitude):
                 sys.exit(
                     'Simulation terminated: One or more sites is too '
                     'far South and is outside the spatial bounds of '
                     'your weather data!')
-            if float(site['lon']) > max(state['weather'].longitude):
+            if np.float(site['lon']) > max(state['weather'].longitude):
                 sys.exit(
                     'Simulation terminated: One or more sites is too '
                     'far East and is outside the spatial bounds of '
                     'your weather data!')
-            if float(site['lon']) < min(state['weather'].longitude):
+            if np.float(site['lon']) < min(state['weather'].longitude):
                 sys.exit(
                     'Simulation terminated: One or more sites is too'
                     'far West and is outside the spatial bounds of '
