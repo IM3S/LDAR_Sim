@@ -23,7 +23,8 @@ from truck_crew import truck_crew
 import math
 import numpy as np
 from generic_functions import get_prop_rate
-
+import pandas as pd 
+from sklearn.cluster import KMeans
 
 class truck_company:
     def __init__(self, state, parameters, config, timeseries):
@@ -37,7 +38,7 @@ class truck_company:
         self.config = config
         self.timeseries = timeseries
         self.crews = []
-        self.deployment_days = self.state['weather'].deployment_days(
+        self.deployment_days = self.state['weather'].deployment_days(   
             method_name=self.name,
             start_date=self.state['t'].start_date,
             start_work_hour=8,  # Start hour in day
@@ -49,6 +50,9 @@ class truck_company:
         self.timeseries['truck_flags_redund2'] = np.zeros(self.parameters['timesteps'])
         self.timeseries['truck_flags_redund3'] = np.zeros(self.parameters['timesteps'])
         self.timeseries['truck_sites_visited'] = np.zeros(self.parameters['timesteps'])
+        self.scheduling  = parameters['methods']['truck']['scheduling']
+        
+        
 
         # Assign the correct follow-up threshold
         if self.config['follow_up_thresh'][1] == "absolute":
@@ -75,11 +79,33 @@ class truck_company:
         self.MCB_map = np.zeros(
             (len(self.state['weather'].longitude),
              len(self.state['weather'].latitude)))
-
-        # Initialize the individual truck crews (the agents)
+        
+            
+        #clustering analysis is applied to assign facilities to each agent, if we have more thane 1 agent 
+        if self.parameters['methods']['truck']['n_crews']>1:
+            Lats = [] 
+            Lons = [] 
+            ID = [] 
+            for site in self.state['sites']:
+                ID.append(site['facility_ID'])
+                Lats.append(site['lat'])
+                Lons.append(site['lon'])
+            sdf = pd.DataFrame({"ID":ID,
+                        'lon':Lons,
+                        'lat':Lats}) 
+            X = sdf[['lat', 'lon']].values
+            num = config['n_crews']
+            kmeans = KMeans(n_clusters=num, random_state=0).fit(X)
+            l = kmeans.labels_
+        else: 
+            l = np.zeros(len(self.state['sites']))
+        
+        for i in range(len(self.state['sites'])): 
+            self.state['sites'][i]['label'] = l[i]
+        
         for i in range(config['n_crews']):
             self.crews.append(truck_crew(state, parameters, config,
-                                         timeseries, self.deployment_days, id=i + 1))
+                                     timeseries, self.deployment_days, id=i + 1))
 
         return
 
@@ -87,33 +113,42 @@ class truck_company:
         """
         The truck company tells all the crews to get to work.
         """
-
-        self.candidate_flags = []
-        for i in self.crews:
-            i.work_a_day(self.candidate_flags)
-
-        # Flag sites according to the flag ratio
-        if len(self.candidate_flags) > 0:
-            self.flag_sites()
-
-        # Update method-specific site variables each day
-        for site in self.state['sites']:
-            site['truck_t_since_last_LDAR'] += 1
-            site['attempted_today_truck?'] = False
-
-        if self.state['t'].current_date.day == 1 and self.state['t'].current_date.month == 1:
+        if self.scheduling['deployment_times'][0]: 
+            required_year = self.scheduling['deployment_times'][1]
+            required_month = self.scheduling['deployment_times'][2]
+        else:
+            required_year = list(range(self.state['t'].start_date.year,self.state['t'].end_date.year+1))
+            required_month = list(range(1,13))
+        
+        if self.state['t'].current_date.month in required_month  and self.state['t'].current_date.year in required_year:
+            self.candidate_flags = []
+            for i in self.crews:
+                i.work_a_day(self.candidate_flags)
+    
+            # Flag sites according to the flag ratio
+            if len(self.candidate_flags) > 0:
+                self.flag_sites()
+    
+            # Update method-specific site variables each day
             for site in self.state['sites']:
-                site['surveys_done_this_year_truck'] = 0
-
-        # Calculate proportion sites available
-        available_sites = 0
-        for site in self.state['sites']:
-            if self.deployment_days[site['lon_index'],
-                                    site['lat_index'],
-                                    self.state['t'].current_timestep]:
-                available_sites += 1
-        prop_avail = available_sites / len(self.state['sites'])
-        self.timeseries['truck_prop_sites_avail'].append(prop_avail)
+                site['truck_t_since_last_LDAR'] += 1
+                site['attempted_today_truck?'] = False
+    
+            if self.state['t'].current_date.day == 1 and self.state['t'].current_date.month == 1:
+                for site in self.state['sites']:
+                    site['surveys_done_this_year_truck'] = 0
+    
+            # Calculate proportion sites available
+            available_sites = 0
+            for site in self.state['sites']:
+                if self.deployment_days[site['lon_index'],
+                                        site['lat_index'],
+                                        self.state['t'].current_timestep]:
+                    available_sites += 1
+            prop_avail = available_sites / len(self.state['sites'])
+            self.timeseries['truck_prop_sites_avail'].append(prop_avail)
+        else: 
+            self.timeseries['truck_prop_sites_avail'].append(0)
 
         return
 
@@ -130,18 +165,18 @@ class truck_company:
         measured_rates = []
 
         for i in self.candidate_flags:
-            measured_rates.append(i['site_measured_rate'])
+            measured_rates.append(i['measured_rate'])
         measured_rates.sort(reverse=True)
         target_rates = measured_rates[:n_sites_to_flag]
 
         for i in self.candidate_flags:
-            if i['site_measured_rate'] in target_rates:
+            if i['measured_rate'] in target_rates:
                 sites_to_flag.append(i)
 
         for i in sites_to_flag:
             site = i['site']
             leaks_present = i['leaks_present']
-            site_true_rate = i['site_true_rate']
+            site_cum_rate = i['site_cum_rate']
             venting = i['venting']
 
             # If the site is already flagged, your flag is redundant
@@ -166,7 +201,7 @@ class truck_company:
 
                 # Would the site have been chosen without venting?
                 if self.parameters['consider_venting']:
-                    if (site_true_rate - venting) < self.config['follow_up_thresh']:
+                    if (site_cum_rate - venting) < self.config['follow_up_thresh']:
                         self.timeseries['truck_flags_redund3'][
                             self.state['t'].current_timestep] += 1
 

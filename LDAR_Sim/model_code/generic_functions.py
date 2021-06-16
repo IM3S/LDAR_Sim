@@ -30,6 +30,9 @@ import matplotlib.pyplot as plt
 import boto3  # for downloading data from AWS
 from botocore.exceptions import ClientError
 import ephem
+from math import  atan, atan2, cos, degrees, sin, sqrt
+from shapely.geometry import Polygon
+import datetime
 
 def gap_calculator(condition_vector):
     """
@@ -283,3 +286,95 @@ def quick_cal_daylight(date,lat,lon):
     sunset = ss
 
     return (sunrise,sunset)
+	
+	
+def ecef_to_llh(ecef_km):
+    # WGS84
+    a = 6378.1370
+    b = 6356.752314
+
+    p = sqrt(ecef_km[0] ** 2 + ecef_km[1] ** 2)
+    thet = atan(ecef_km[2] * a / (p * b))
+    esq = 1.0 - (b / a) ** 2
+    epsq = (a / b) ** 2 - 1.0
+
+    lat = atan((ecef_km[2] + epsq * b * sin(thet) ** 3) / (p - esq * a * cos(thet) ** 3))
+    lon = atan2(ecef_km[1], ecef_km[0])
+    n = a * a / sqrt(a * a * cos(lat) ** 2 + b ** 2 * sin(lat) ** 2)
+    h = p / cos(lat) - n
+
+    lat = degrees(lat)
+    lon = degrees(lon)
+    return lat, lon, h
+
+def init_orbit_poly (predictor,T1,T2,interval):
+    Poly = []
+    Day = [] 
+    while T1!=T2: 
+        info1 = predictor.get_position(T1)
+        ecef1 = info1.position_ecef # the unit is km
+        # covert ecef to lat, lon, and altitude 
+        lat1,lon1,h1 = ecef_to_llh(ecef1)
+
+        # get the coordiantes 2 mins after 
+        st = T1 + datetime.timedelta(minutes = interval)
+        info2 = predictor.get_position(st)
+        ecef2 = info2.position_ecef
+        lat2,lon2,h2 = ecef_to_llh(ecef2)
+
+        # get the coverage of this 2 minutes 
+        pt1 = (lon1,lat1+0.1)
+        #P = Point(pt1)
+        pt2 = (lon1+0.1,lat1)
+        pt7 = (lon2,lat2-0.1)
+        pt8 = (lon2-0.1,lat2)
+
+        # create that coverage area 
+        polygon3 = Polygon([pt1, pt2,pt7,pt8])
+        Poly.append(polygon3)
+        Day.append(T1)
+            
+         
+        T1 += datetime.timedelta(minutes = interval)
+        
+    return Day,Poly
+
+def find_homebase(x1,y1,HX,HY): 
+    XY = list(zip(HX,HY))
+    D = []
+    for xy in XY:
+        x2 = xy[0]
+        y2 = xy[1]
+        d = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+        D.append(d)
+    ind =D.index(min(D))
+    dist = min(D) * 110
+    return (XY[ind],dist)
+
+def get_distance (x1,y1,x2,y2,form): 
+    if form == "Euclidian": 
+        d = ((x1 - x2)**2 + (y1-y2)**2)**0.5
+        d = d * 110 # covert to km  
+    elif form == "route":
+        d = 100 
+    return d 
+
+def find_homebase_opt(x1,y1,x2,y2,HX,HY):
+    # x1 and y1 are lon&lat of next visiting facility 
+    # x2 and y2 are lon&lat of current homebase 
+    XY = list(zip(HX,HY))
+    xy2 = (x2,y2)
+    if xy2 in XY:
+        ind = XY.index(xy2)
+        XY.pop(ind)
+    D = []
+    for xy in XY:
+        x3 = xy[0]
+        y3 = xy[1]
+        d1 = ((x1 - x3)**2 + (y1 - y3)**2)**0.5
+        d2 = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+        d = d1 + d2 
+        D.append(d)
+    ind =D.index(min(D))
+    dist = min(D) * 110
+    return (XY[ind],dist)

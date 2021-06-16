@@ -21,7 +21,8 @@
 
 from OGI_crew import OGI_crew
 import numpy as np
-
+import pandas as pd 
+from sklearn.cluster import KMeans
 
 class OGI_company:
     def __init__(self, state, parameters, config, timeseries):
@@ -44,6 +45,8 @@ class OGI_company:
         self.timeseries['OGI_cost'] = np.zeros(self.parameters['timesteps'])
         self.timeseries['OGI_redund_tags'] = np.zeros(self.parameters['timesteps'])
         self.timeseries['OGI_sites_visited'] = np.zeros(self.parameters['timesteps'])
+        self.scheduling  = parameters['methods']['OGI']['scheduling']
+        
 
         # Additional variable(s) for each site
         for site in self.state['sites']:
@@ -61,39 +64,73 @@ class OGI_company:
             (len(self.state['weather'].longitude),
              len(self.state['weather'].latitude)))
 
-        # Initialize the individual OGI crews (the agents)
+        # # Initialize the individual OGI crews (the agents)
+        # for i in range(config['n_crews']):
+        #     self.crews.append(OGI_crew(state, parameters, config,
+        #                                timeseries, self.deployment_days, id=i + 1))
+        # clustering analysis is applied to assign facilities to each agent, if we have more thane 1 agent 
+        if self.parameters['methods']['OGI']['n_crews']>1:
+            Lats = [] 
+            Lons = [] 
+            ID = [] 
+            for site in self.state['sites']:
+                ID.append(site['facility_ID'])
+                Lats.append(site['lat'])
+                Lons.append(site['lon'])
+            sdf = pd.DataFrame({"ID":ID,
+                        'lon':Lons,
+                        'lat':Lats}) 
+            X = sdf[['lat', 'lon']].values
+            num = config['n_crews']
+            kmeans = KMeans(n_clusters=num, random_state=0).fit(X)
+            l = kmeans.labels_
+        else: 
+            l = np.zeros(len(self.state['sites']))
+        
+        for i in range(len(self.state['sites'])): 
+            self.state['sites'][i]['label'] = l[i]
+        
         for i in range(config['n_crews']):
             self.crews.append(OGI_crew(state, parameters, config,
-                                       timeseries, self.deployment_days, id=i + 1))
-
+                                     timeseries, self.deployment_days, id=i + 1))
         return
 
     def find_leaks(self):
         """
         The OGI company tells all the crews to get to work.
         """
+        if self.scheduling['deployment_times'][0]: 
+            required_year = self.scheduling['deployment_times'][1]
+            required_month = self.scheduling['deployment_times'][2]
+        else:
+            required_year = list(range(self.state['t'].start_date.year,self.state['t'].end_date.year+1))
+            required_month = list(range(1,13))
+        
+        if self.state['t'].current_date.month in required_month  and self.state['t'].current_date.year in required_year:
 
-        for i in self.crews:
-            i.work_a_day()
-
-        # Update method-specific site variables each day
-        for site in self.state['sites']:
-            site['OGI_t_since_last_LDAR'] += 1
-            site['attempted_today_OGI?'] = False
-
-        if self.state['t'].current_date.day == 1 and self.state['t'].current_date.month == 1:
+            for i in self.crews:
+                i.work_a_day()
+    
+            # Update method-specific site variables each day
             for site in self.state['sites']:
-                site['surveys_done_this_year_OGI'] = 0
-
-        # Calculate proportion sites available
-        available_sites = 0
-        for site in self.state['sites']:
-            if self.deployment_days[site['lon_index'],
-                                    site['lat_index'],
-                                    self.state['t'].current_timestep]:
-                available_sites += 1
-        prop_avail = available_sites / len(self.state['sites'])
-        self.timeseries['OGI_prop_sites_avail'].append(prop_avail)
+                site['OGI_t_since_last_LDAR'] += 1
+                site['attempted_today_OGI?'] = False
+    
+            if self.state['t'].current_date.day == 1 and self.state['t'].current_date.month == 1:
+                for site in self.state['sites']:
+                    site['surveys_done_this_year_OGI'] = 0
+    
+            # Calculate proportion sites available
+            available_sites = 0
+            for site in self.state['sites']:
+                if self.deployment_days[site['lon_index'],
+                                        site['lat_index'],
+                                        self.state['t'].current_timestep]:
+                    available_sites += 1
+            prop_avail = available_sites / len(self.state['sites'])
+            self.timeseries['OGI_prop_sites_avail'].append(prop_avail)
+        else:
+            self.timeseries['OGI_prop_sites_avail'].append(0)
 
         return
 
