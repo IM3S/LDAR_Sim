@@ -26,7 +26,6 @@ import os
 import datetime
 import sys
 import random
-from sensitivity import Sensitivity
 from operator_agent import OperatorAgent
 from plotter import make_plots
 from daylight_calculator import DaylightCalculatorAve
@@ -137,11 +136,6 @@ class LdarSim:
         timeseries['operator_redund_tags'] = np.zeros(self.parameters['timesteps'])
         timeseries['operator_tags'] = np.zeros(self.parameters['timesteps'])
 
-        # Configure sensitivity analysis, if requested (code block must remain here -
-        # after site initialization and before method initialization)
-        if params['sensitivity']['perform']:
-            self.sensitivity = Sensitivity(params, timeseries, state)
-
         # Initialize method(s) to be used; append to state
         for m in params['methods']:
             try:
@@ -156,7 +150,7 @@ class LdarSim:
         # Generate initial leak count for each site
         for site in state['sites']:
             n_leaks = random.choice(state['empirical_counts'])
-            if n_leaks < 0:  # This can happen occasionally during sensitivity analysis
+            if n_leaks < 0:
                 n_leaks = 0
             site.update({'initial_leaks': n_leaks})
             state['init_leaks'].append(site['initial_leaks'])
@@ -483,10 +477,6 @@ class LdarSim:
             'timeseries': time_df,
             'sites': site_df,
         }
-
-        # Write sensitivity analysis data, if requested
-        if params['sensitivity']['perform']:
-            sim_summary['sensitivity'] = self.sensitivity.write_data()
 
         # Return to original working directory
         os.chdir(params['working_directory'])
