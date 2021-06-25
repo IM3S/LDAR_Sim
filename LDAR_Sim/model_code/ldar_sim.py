@@ -45,8 +45,6 @@ class LdarSim:
         self.active_leaks = []
 
         # Read in data files
-        state['empirical_counts'] = np.array(pd.read_csv(
-            params['working_directory'] + params['count_file']).iloc[:, 0])
         state['empirical_leaks'] = np.array(pd.read_csv(
             params['working_directory'] + params['leak_file']).iloc[:, 0])
         state['empirical_sites'] = np.array(pd.read_csv(
@@ -149,7 +147,7 @@ class LdarSim:
 
         # Generate initial leak count for each site
         for site in state['sites']:
-            n_leaks = random.choice(state['empirical_counts'])
+            n_leaks = round(self.parameters['LPR'] * self.parameters['NRd']) # average leaks per site per year
             if n_leaks < 0:
                 n_leaks = 0
             site.update({'initial_leaks': n_leaks})
@@ -176,7 +174,7 @@ class LdarSim:
                         'lon': float(site['lon']) + np.random.normal(0, 0.0001),
                         'status': 'active',
                         'tagged': False,
-                        'days_active': 0,
+                        'days_active': int(np.random.uniform(0, params['NRd'])),
                         'component': 'unknown',
                         'date_began': state['t'].current_date,
                         'date_tagged': None,
@@ -209,7 +207,7 @@ class LdarSim:
 
             # Run Monte Carlo simulations to get distribution of vented emissions
             for i in range(1000):
-                n_mc_leaks = random.choice(state['empirical_counts'])
+                n_mc_leaks = random.choice(state['sites'])['active_leaks']
                 mc_leaks = []
                 for leak in range(n_mc_leaks):
                     if params['use_empirical_rates'] == 'sample':

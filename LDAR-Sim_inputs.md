@@ -1,9 +1,9 @@
 ﻿# LDAR-Sim Documentation for Input Parameters and Data
 
-Github Repository: IM3S
-Version: 1.X
-Branch: Master
-Document Custodian: Thomas Fox
+Github Repository: IM3S \
+Version: 1.X \
+Branch: Master \
+Document Custodian: Thomas Fox \
 Email: thomas@highwoodemissions.com
 
 # Read This First
@@ -72,18 +72,6 @@ By detailing the model inputs, this report creates the technical foundation for 
 
 **Notes of caution:** Screening technology performance will typically suffer if only fugitive emissions are being targeted due to the confounding presence of design (e.g., vented) emissions. Results from simulations of screening technologies that do not consider venting are therefore optimistic and unlikely to be representative of true reductions. When vented emissions are considered, it will change what facilities are selected for follow-up by screening technologies.
 
-## count\_file
-
-**Data type:** Character string that specifies the name of the csv count file.
-
-**Default input:**&quot;leak\_counts.csv&quot;
-
-**Description:** The count\_file specifies the number of leaks expected to be found at a facility. It is a distribution of leak counts that is sampled once for each facility during initialization. At the bare minimum, the csv contains a single column with the heading name _counts_. Each cell contains an integer representing the number of leaks found during a single LDAR survey. For many applications, this single column may be sufficient. Additional columns can be included if &#39;intelligent&#39; sampling of leak counts is to be used. These fields must have matching fields in the infrastructure\_file. Examples include facility type, production type, company, and so on. Beyond column A (_counts_), any column headings can be used, and all data contents are treated as character strings (category labels).
-
-**Notes on acquisition:** It is important that count data are collected using the same instrument that is used to collect leak rate data (i.e., both collected using M21 or both collected using OGI). Ideally, count and leak data would be collected at the same time and for the same sites (see leak\_file below).
-
-**Notes of caution:** The count distribution should include a zero for each leak-free facility that was visited during the collection of empirical data. For &#39;supplemental&#39; columns (columns B and onward), the number of leaks required for the distribution should increase exponentially for each new column, because count sampling will become increasingly specific. Categories must also be sufficiently exhaustive to be representative. For example, in the table below, each time a natural gas facility with type 361 is sampled, only a single option exists, so the leak count sampled for the new facility will be 1. If the facility type is 311, then the number of leaks sampled could be 6 or 8. If a facility is input to the infrastructure\_file that is subtype 341 and gas, or subtype 401, an error will be returned, as a matching input distribution cannot be generated.
-
 ## infrastructure\_file
 
 **Data type:** Character string that specifies the name of the csv file that contains all of the required data on the facilities that comprise the LDAR program.
@@ -94,7 +82,7 @@ By detailing the model inputs, this report creates the technical foundation for 
 
 **Notes on acquisition:** See subsections.
 
-**Notes of caution:** Although facility-specific inputs provide flexibility, in most cases the appropriate data will not be available, and the same survey time or survey frequency may be used for all facilities. Similarly, in most cases the orange text in Table 2 will not be required, and should only be used if the available input distributions are comprehensive (see count\_file section for futher context). In general, LDAR-Sim does not hard-code methods, facility types, production types, and so on. These are provided by the user as categorical variables and can be anything. However, categorical variables must be consistent among different input files or errors will occur.
+**Notes of caution:** Although facility-specific inputs provide flexibility, in most cases the appropriate data will not be available, and the same survey time or survey frequency may be used for all facilities. Similarly, in most cases the orange text in Table 2 will not be required, and should only be used if the available input distributions are comprehensive. In general, LDAR-Sim does not hard-code methods, facility types, production types, and so on. These are provided by the user as categorical variables and can be anything. However, categorical variables must be consistent among different input files or errors will occur.
 
 ### facility\_ID
 
@@ -180,7 +168,7 @@ By detailing the model inputs, this report creates the technical foundation for 
 
 **Notes on acquisition:** Specific to the category chosen and up to the user to define.
 
-**Notes of caution:** Categories used here must correspond with any categories used elsewhere in the model. In particular, when sampling from the count\_file and the leak\_file, LDAR-Sim will match the additional categories specified in all files to refine the sampling process and generate emissions information that is representative of the facility for which sampling is being performed. Note that the number of leak counts and leak rates required for the custom empirical distribution should increase exponentially for each new additional category used, because sampling will become increasingly specific. Categories must also be sufficiently exhaustive to be representative. See the count\_file section for an example of why additional categories must be included deliberately and with prudence.
+**Notes of caution:** Categories used here must correspond with any categories used elsewhere in the model. In particular, when sampling from the leak\_file, LDAR-Sim will match the additional categories specified in all files to refine the sampling process and generate emissions information that is representative of the facility for which sampling is being performed. Note that the number of leak rates required for the custom empirical distribution should increase exponentially for each new additional category used, because sampling will become increasingly specific. Categories must also be sufficiently exhaustive to be representative.
 
 ## leak\_file
 
@@ -188,11 +176,11 @@ By detailing the model inputs, this report creates the technical foundation for 
 
 **Default input:**&quot;leaks\_rates.csv&quot;
 
-**Description:** The leak\_file specifies the leak rates and relevant characteristics of empirical leaks, forming the basis of the leak-rate distribution that is sampled once for each new leak that is generated. At the bare minimum, the csv contains a single column with the heading name _gpersec_. Each cell contains a numeric value representing the emission rate of a real, previously detected, and quantified leak, in grams per second. For many applications, this single column may be sufficient. Additional columns can be included if &#39;intelligent&#39; sampling of leak counts is to be used. These fields must have matching fields in the infrastructure\_file. Examples include facility type, production type, company, and so on. Beyond column A (_counts_), any column headings can be used, and all data contents are treated as character strings (category labels). See Table 3 for an example.
+**Description:** The leak\_file specifies the leak rates and relevant characteristics of empirical leaks, forming the basis of the leak-rate distribution that is sampled once for each new leak that is generated. At the bare minimum, the csv contains a single column with the heading name _gpersec_. Each cell contains a numeric value representing the emission rate of a real, previously detected, and quantified leak, in grams per second. For many applications, this single column may be sufficient. Additional columns can be included if &#39;intelligent&#39; sampling of leak rates is to be used. These fields must have matching fields in the infrastructure\_file. Examples include facility type, production type, company, and so on. Beyond column A, any column headings can be used, and all data contents are treated as character strings (category labels). See Table 3 for an example.
 
-**Notes on acquisition:** It is important that leak rate data are collected using the same instrument that is used to collect leak count data (i.e., both collected using M21 or both collected using OGI). Ideally, count and leak data would be collected at the same time and for the same sites.
+**Notes on acquisition:** It is important that leak rate data are collected using the same instrument that is used to estimate the leak production rate (i.e., both collected using M21 or both collected using OGI). Ideally, LPR and leak data would be collected at the same time and for the same sites.
 
-**Notes of caution:** For non-mandatory columns (columns B and onward), the number of leaks required for the distribution should increase exponentially for each new column, because leak rate sampling will become increasingly specific. Categories must also be sufficiently exhaustive to be representative. See count\_file for an example.
+**Notes of caution:** For non-mandatory columns (columns B and onward), the number of leaks required for the distribution should increase exponentially for each new column, because leak rate sampling will become increasingly specific. Categories must also be sufficiently exhaustive to be representative.
 
 ### leak_rate_dist
 
@@ -897,7 +885,6 @@ In terms of data source, inputs can come from oil and gas companies, technology 
 
 Duty Holder / Operator (historical LDAR data)
 
-- count\_file\*
 - leak\_file\*
 - LPR\*
 - vent\_file\*

@@ -40,7 +40,6 @@ P_sat = {
 	'weather_file': "ERA5_AB_1x1_hourly_2015_2019.nc",
         'infrastructure_file': 'facility_list_template.csv',
         'leak_file': 'leak_rates.csv',
-        'count_file': 'leak_counts.csv',
         'vent_file': 'site_rates.csv',
         't_offsite_file': 'time_offsite_ground.csv',
         'site_samples': [True,1000],
