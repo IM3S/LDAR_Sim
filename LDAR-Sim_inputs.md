@@ -13,6 +13,7 @@ Please note the following before reading, using, or modifying this document:
  - The document you are now reading will *always* be associated with a specific version or branch of LDAR-Sim. Multiple versions of this document therefore exist, as multiple versions and subversions of LDAR-Sim exist.
  - **If you are submitting a pull request to the public LDAR-Sim repo**, please update this documentation alongside modification to code. Your pull request will not be approved without updating this document with relevant changes to inputs and their implications.
  - Within each category, please maintain alphabetic ordering on contents.
+ - All new parameters require an update to input parameter mapper to ensure that your new parameter(s) map properly.
  - For more information on LDAR-Sim, including code, instructions, and additional resources, please visit the Github page by [clicking this link](https://github.com/tarcadius/LDAR_Sim).
  - If you find any errors or inaccuracies in this documentation, please contact the document custodian (email included above).
 
@@ -25,6 +26,195 @@ LDAR-Sim is a computer model that simulates an asset base of oil and gas facilit
 To support wider use of LDAR-Sim, the University of Calgary and Highwood Emissions Management have partnered to expand the model&#39;s capabilities and stakeholder accessibility through the IM3S Project. This document details the model&#39;s input data definitions, requirements, and formats. For each input parameter, the data type, defaults, and a detailed description are provided, as well as additional information about data acquisition and limitations. The parameter list comprises general inputs such as weather, leak counts and rates, and facility coordinates, as well as those specific to individual close-range and screening methods like cost-per-day and follow-up thresholds. All inputs, whether empirical distributions or Boolean logic, are customizable. Recommended defaults are described.
 
 By detailing the model inputs, this report creates the technical foundation for adding new functionality and enabling wider use of the model. This document will be revised continuously as modules, inputs, and functionality are added to or removed from LDAR-Sim.
+
+# Running the Model
+
+To run the model, supply one or more input parameter files as arguments to the program. The main function is called `ldar_sim_main.py` and is the main entrypoint to the model.
+
+```buildoutcfg
+python ldar_sim_main.py parameter_file1.txt parameter_file2.txt
+```
+
+## Parameter File Structure
+
+Parameter files are all key-value pairs (e.g., Python dictionary), with multiple levels of nesting. In general, there are 3 layers of nesting:
+
+- `global`: global parameters that are common across the simulation such as system parameters, etc.
+- `program`: program parameters that relate to a specific emissions reduction program, of which there could be multiple within a given simulation.
+- `method`: emissions reduction methods (e.g., specific LDAR technologies or LDAR companies) that are deployed within a program. Methods are specified in a given program for deployment.
+
+A typical simulation would involve at least two programs, a reference program and a test program. The reference program could deploy one reference method. The test program could deploy two new LDAR methods. Each program would be run on the asset base multiple times through time, to create a statistical representation of the emissions and cost data. Finally, the statistical distribution of the reference program can be compared with the statistical distribution of the test program. Fundamentally, it is those differences between the programs that represents the important information that is of interest to users of LDAR-Sim.
+
+Here is an example of the hierarchy:
+
+```buildoutcfg
+Global parameters
+Programs:
+    Reference program:
+        Reference LDAR method
+    Test program:
+        New LDAR method 1
+        New LDAR method 2
+```
+
+## Parameter file usage
+
+Parameter files are read on top of each other, starting with the default set of parameters. How does this work? Here is an example `parameter_file1.txt`:
+
+```buildoutcfg
+parameters = {
+    'n_simulations': 30,
+    'LPR': 0.0065,
+}
+```
+
+This will revise the `n_simulations` key to 30, from whatever was default, and the `LPR` key to 0.0065, from whatever was default. Next, `parameter_file2.txt` is read, which looks like this:
+
+```buildoutcfg
+parameters = {
+    'n_simulations': 3,
+}
+```
+
+This will replace the `n_simulations` key with 3 (instead of 30), but leave the `LPR` key, and all other parameters in the model untouched. The model will now run with parameters that look like this:
+
+```buildoutcfg
+parameters = {
+    'n_simulations': 3,
+    'LPR': 0.0065,
+    .... ALL OTHER PARAMETERS RUN WITH DEFAULT VALUES ....
+}
+```
+
+Keep in mind that only 2 parameters have been changed with these parameter files - all other parameters run with the default values. We have attempted to choose representative defaults, but be aware the default values may not be what is appropriate for your use case.
+
+In this example, changing the `n_simulations` key to 3 makes the model run faster and provides a way to test the model without waiting for it to complete 30 simulations. A reasonable workflow with these parameters would be something like running the model in a test configuration with:
+
+```buildoutcfg
+python ldar_sim_main.py parameter_file1.txt parameter_file2.txt
+```
+
+Then, when we are comfortable understanding the outputs and want to run the model for longer to get more statistically valid results, run:
+
+```buildoutcfg
+python ldar_sim_main.py parameter_file1.txt
+```
+
+The model will now run for the full 30 simulations because we did not load `parameter_file2.txt` and the `n_simulations` key did not get overwritten to 3. Essentially `parameter_file2.txt` is a run configuration for testing, it is something you could add onto any simulation you like to test out the configuration, then drop it when you are ready to get production results.
+
+To ensure reproducibility, the full set of parameters are written in the output directory so the model run can be reproduced or interrogated.
+
+Keep in mind that the **order matters** - if you change around the order that parameter files are read in, the parameters in the end will be different.
+
+The example above focused on a testing run configuration, but the functionality is designed to be used to enable modularization. For example, parameter files can be modularized into categories like:
+
+- specific asset bases and infrastructure types
+- specific program definitions
+- specific method definitions
+- specific run configurations (e.g., as example above)
+- specific scheduling configurations
+- specific computer systems
+
+For example, running an existing program with an existing collection of methods in a new jurisdiction is as simple as just revising the asset parameter file to the new set of sites, leaving the other parameter files untouched.
+
+While global parameters are straightforward to specify this way, and the above example shows how to do this - a few extra parameters are required to directly specify programs or methods, which are at different levels in the hierarchy.
+
+## Specifying parent / child relationships and hierarchy
+
+To tell LDAR-Sim what level in the hierarchy your parameter file is destined for, you can optionally specify a `parameter_level` parameter that will specify what level your parameter file is aimed at - otherwise LDAR-Sim will interpret it as global parameters.
+
+The `parameter_level` parameter can be one of three values:
+
+- `global`: parameters are aimed at the global level.
+- `program`: parameters are used as a program definition.
+- `method`: parameters are used as a method definition.
+
+This `parameter_level` can also be supplemented by specification of the parent / child relationships among different parameter files. Here is the example simulation hierarchy from above:
+
+```buildoutcfg
+Global parameters
+Programs:
+    Reference program:
+        Reference LDAR method
+    Test program:
+        New LDAR method 1
+        New LDAR method 2
+```
+
+In this example, `Global parameters` have no parent, they are the top level in the hierarchy. But global parameters have a number of programs as children, in this case `Reference program` and `Test program`. Both `Reference program` and `Test program` have the same parent, the `Global parameters`. The 3 different LDAR methods here have parents (the programs), but do not have children.
+
+These parent and child relationships can be specified within parameter files with the addition of several optional parameters:
+
+`name`: this is the name of the set of parameters. Or in the case of a program or method, the name of the program or method, respectively. No child or parent configuration will work without names. If you do not specify a name, LDAR-Sim will attempt to guess a name from the filename.
+
+`parent_name`: if this set of parameters is a child, it can specify its parent. Keep in mind that the parent will need to have the name key set for this work. This specification is for methods, which can specify the program they are to be deployed within.
+
+`children_names`: if this set of parameters has children, these can be specified here. In the case of global parameters, global parameters would have one or more In the case of programs, programs can have one or more methods as children.
+
+LDAR-Sim will attempt to resolve parent / child relationships from the parent end first.
+
+Here is an example to better explain how this works. The reference program parameter file looks like this:
+
+```buildoutcfg
+parameters = {
+    'parameter_level': 'program',
+    'name': 'reference_program',
+    'children_names': ['reference_method'],
+    .... OTHER PROGRAM PARAMETERS ....
+}
+```
+
+The reference program file looks like this:
+
+```buildoutcfg
+parameters = {
+    'parameter_level': 'method',
+    'name': 'reference_method',
+    .... OTHER METHOD PARAMETERS ....
+}
+```
+
+Note that the `parent_name` is not specified in this file, this is OK and probably the preferred way to do it as the method can be attached to any program in the future.
+
+The test program file looks like this:
+
+```buildoutcfg
+parameters = {
+    'parameter_level': 'program',
+    'name': 'test_program',
+    'children_names': ['new_ldar_method1', 'new_ldar_method2'],
+    .... OTHER PROGRAM PARAMETERS ....
+}
+```
+
+The global parameters can then look like this:
+
+```buildoutcfg
+parameters = {
+    'parameter_level': 'global',
+    'children_names': ['reference_program', 'test_program'],
+    .... OTHER GLOBAL PARAMETERS ....
+}
+```
+
+Putting it together, the series of parameter files required include:
+
+- global parameters, that specify the children programs in this simulation
+- parameters for the reference program
+- parameters for the test program
+- parameters for the reference method, as it is referenced as a child of the reference program
+- parameters for the test program
+- parameters for the new LDAR methods 1 and 2, because they are referenced as required methods for the test program
+
+While you could put all the parameters in one giant parameter file (and not specify any parent / child relationships), using flexible parameter files is easier as you could easily recycle your methods in different programs and maintain a library of programs and methods that can be used at any time in the future.
+
+## Parameter File Formats
+
+LDAR-Sim includes a flexible input parameter mapper that accepts a variety of input parameter formats, choose the one that you like the best. Yaml[YAML](https://en.wikipedia.org/wiki/YAML) is the easiest to read for humans, allows inline comments, and is recommended. The following formats are accepted:
+
+- executable python files (extension = '.txt')
+- yaml files (extension = '.yaml' or '.yml')
+- json files (extension = '.json')
 
 # General Inputs
 
