@@ -1,0 +1,15 @@
+parameters = {
+    'parameter_level': 'global',
+    'parent_name': 'global',
+    'parameter_version': '1.0',
+    'reference_program': 'P_ref',
+    'simulation_programs': ['P_ref', 'P_base'],
+    'wd': '..//inputs_template//',
+    'output_directory': '..//outputs//',
+    'n_processes':  None,
+    'print_from_simulations': True,
+    'n_simulations': 2,
+    'spin_up': 0,
+    'write_data':  True,
+    'additional_parameter_files': [],
+}
