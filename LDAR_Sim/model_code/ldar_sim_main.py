@@ -29,6 +29,8 @@ import datetime
 import warnings
 import multiprocessing as mp
 from generic_functions import check_ERA5_file
+from initialization.sites import generate_sites
+
 
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
@@ -39,7 +41,8 @@ if __name__ == '__main__':
     wd = os.path.abspath(root_dir) + "/inputs_template/"
     output_directory = os.path.abspath(root_dir) + "/outputs/"
     # Programs to compare; Position one should be the reference program (P_ref)
-    program_list = ['P_ref', 'P_dev_aircraft', 'P_dev_OGI', 'P_aircraft']
+    program_list = ['P_ref', 'P_dev_aircraft', 'P_aircraft']
+    # program_list = ['P_ref', 'P_dev_aircraft', 'P_dev_OGI', 'P_aircraft']
 
     # -----------------------------Set up programs----------------------------------
     programs = []
@@ -69,16 +72,29 @@ if __name__ == '__main__':
     # Set up simulation parameter files
     simulations = []
     for i in range(n_simulations):
+        if programs[0]['pregenerate_leaks']:
+            sites, leak_timeseries, initial_leaks = generate_sites(programs[0], wd)
+        else:
+            sites = []
+            leak_timeseries = []
+            initial_leaks = []
+
         for j in range(len(programs)):
             opening_message = "Simulating program {} of {} ; simulation {} of {}".format(
                 j + 1, len(programs), i + 1, n_simulations
             )
+            programs[j].update({'sites': sites,
+                                'leak_timeseries': leak_timeseries,
+                                'initial_leaks': initial_leaks,
+                                })
             simulations.append(
                 [{'i': i, 'program': programs[j],
                   'wd': wd,
                   'output_directory':output_directory,
                   'opening_message': opening_message,
-                  'print_from_simulation': print_from_simulations}])
+                  'print_from_simulation': print_from_simulations
+
+                  }])
 
     # Perform simulations in parallel
     with mp.Pool(processes=n_processes) as p:
@@ -90,7 +106,7 @@ if __name__ == '__main__':
         reporting_data = BatchReporting(
             output_directory, programs[0]['start_year'],
             spin_up, ref_program)
-        if n_simulations > 1:
+        if n_simulations >= 1:
             reporting_data.program_report()
             if len(programs) > 1:
                 reporting_data.batch_report()

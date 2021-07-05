@@ -16,6 +16,7 @@ P_ref = {
         'program_name': 'P_ref',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file
+        'pregenerate_leaks':True,
         'n_processes': None,
 	'start_year': 2017,
         'UTC_offset': -6,
@@ -35,10 +36,10 @@ P_ref = {
         'repair_delay': 14,
         'repair_cost': 200,
         'use_empirical_rates': False, # 'sample', 'fit', or False
-        'leak_rate_dist': ['lognorm',-2.776, 1.462, "kilogram", "hour"],
+        'leak_rate_dist': ['lognorm',2.776, 1.462, "kilogram", "hour"],
         'max_leak_rate': 100, # g/s
         'LPR': 0.0065,
-	'NRd': 150,
+	'NRd': 1050,
         'max_det_op': 0.00,
         'spin_up': 0,
         'write_data': True, # Must be TRUE to make plots and maps

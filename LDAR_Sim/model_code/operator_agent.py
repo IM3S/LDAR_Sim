@@ -31,8 +31,8 @@ class OperatorAgent:
         self.parameters = parameters
         self.state = state
         self.timeseries = timeseries
-        self.init_mean_leaks = np.mean(self.state['init_leaks'])
-        self.init_sum_leaks = np.sum(self.state['init_leaks'])
+        # self.init_mean_leaks = np.mean(self.state['init_leaks'])
+        # self.init_sum_leaks = np.sum(self.state['init_leaks'])
         self.n_sites = len(self.state['sites'])
 
         return
@@ -52,7 +52,7 @@ class OperatorAgent:
                     prob_detect = self.parameters['LPR'] * 7 / leak_term
                     prob_detect  \
                         += self.parameters['max_det_op'] \
-                        * (leak['rate'] / (self.state['max_leak_rate']))
+                        * (leak['rate'] / (self.parameters['max_leak_rate']))
                     if prob_detect > 1:
                         prob_detect = 1
                     if prob_detect < 0:

@@ -21,7 +21,6 @@
 
 import pandas as pd
 import numpy as np
-import csv
 import os
 import datetime
 import sys
@@ -31,7 +30,9 @@ from operator_agent import OperatorAgent
 from plotter import make_plots
 from daylight_calculator import DaylightCalculatorAve
 from generic_functions import make_maps
-from utils.distributions import leak_rvs, fit_dist
+from utils.distributions import leak_rvs
+from geography.vector_funcs import grid_contains_point
+from initialization.sites import generate_sites
 
 
 class LdarSim:
@@ -46,8 +47,6 @@ class LdarSim:
         self.active_leaks = []
 
         # Read in data files
-        state['empirical_counts'] = np.array(pd.read_csv(
-            params['working_directory'] + params['count_file']).iloc[:, 0])
         state['empirical_leaks'] = np.array(pd.read_csv(
             params['working_directory'] + params['leak_file']).iloc[:, 0])
         state['empirical_sites'] = np.array(pd.read_csv(
@@ -58,34 +57,10 @@ class LdarSim:
                     params['working_directory'] + params['time_offsite']).iloc[:, 0])
             else:
                 state['offsite_times'] = np.array([params['time_offsite']])
-        #  Empirical Leaks can be fit with the following
-        if params['use_empirical_rates'] == 'fit':
-            params['leak_distribution'] = fit_dist(
-                samples=state['empirical_leaks'],
-                dist_type='lognorm')
-            params['leak_rate_units'] = ['gram', 'second']
-        state['max_leak_rate'] = params['max_leak_rate']
+
         # Read in the sites as a list of dictionaries
-        with open(params['working_directory'] + params['infrastructure_file']) as f:
-            state['sites'] = [{k: v for k, v in row.items()}
-                              for row in csv.DictReader(f, skipinitialspace=True)]
-
-        # Sample sites
-        if params['site_samples'][0]:
-            state['sites'] = random.sample(
-                state['sites'],
-                params['site_samples'][1])
-
-        if params['subtype_times'][0]:
-            subtype_times = pd.read_csv(params['working_directory'] + params['subtype_times'][1])
-            cols_to_add = subtype_times.columns[1:].tolist()
-            for col in cols_to_add:
-                for site in state['sites']:
-                    site[col] = subtype_times.loc[subtype_times['subtype_code'] ==
-                                                  int(site['subtype_code']), col].iloc[0]
-
-        # Shuffle all the entries to randomize order for identical 't_Since_last_LDAR' values
-        random.shuffle(state['sites'])
+        if len(state['sites']) < 1:
+            state['sites'] = generate_sites(params, params['working_directory'])
 
         # Additional variable(s) for each site
         for site in state['sites']:
@@ -103,33 +78,11 @@ class LdarSim:
                 range(len(state['weather'].longitude)), key=lambda i: abs(
                     state['weather'].longitude[i] - float(site['lon']) % 360))})
 
-            # Check to make sure site is within range of grid-based data
-            if float(site['lat']) > max(state['weather'].latitude):
-                sys.exit(
-                    'Simulation terminated: One or more sites is too '
-                    'far North and is outside the spatial bounds of '
-                    'your weather data!')
-            if float(site['lat']) < min(state['weather'].latitude):
-                sys.exit(
-                    'Simulation terminated: One or more sites is too '
-                    'far South and is outside the spatial bounds of '
-                    'your weather data!')
-            if float(site['lon']) > max(state['weather'].longitude):
-                sys.exit(
-                    'Simulation terminated: One or more sites is too '
-                    'far East and is outside the spatial bounds of '
-                    'your weather data!')
-            if float(site['lon']) < min(state['weather'].longitude):
-                sys.exit(
-                    'Simulation terminated: One or more sites is too'
-                    'far West and is outside the spatial bounds of '
-                    'your weather data!')
-
-            # Add a distribution and unit for each leak
-            if not params['subtype_distributions'][0]:
-                site['subtype_code'] = 0
-            site['leak_rate_dist'] = params['dists'][int(site['subtype_code'])]['dist']
-            site['leak_rate_units'] = params['dists'][int(site['subtype_code'])]['units']
+            in_grid, exit_msg = grid_contains_point(
+                [site['lat'], site['lon']],
+                [state['weather'].latitude, state['weather'].longitude])
+            if not in_grid:
+                sys.exit(exit_msg)
 
         # Additional timeseries variables
         timeseries['total_daily_cost'] = np.zeros(params['timesteps'])
@@ -160,45 +113,44 @@ class LdarSim:
             except AttributeError:
                 print('Cannot add this method: ' + m_key)
 
-        # Generate initial leak count for each site
-        for site in state['sites']:
-            n_leaks = random.choice(state['empirical_counts'])
-            if n_leaks < 0:  # This can happen occasionally during sensitivity analysis
-                n_leaks = 0
-            site.update({'initial_leaks': n_leaks})
-            state['init_leaks'].append(site['initial_leaks'])
+        # for site in state['sites']:
+        #     state['init_leaks'].append(site['initial_leaks'])
 
         # For each leak, create a dictionary and populate values for relevant keys
         for site in state['sites']:
             if site['initial_leaks'] > 0:
                 for leak in range(site['initial_leaks']):
-                    if params['use_empirical_rates'] == 'sample':
-                        leaksize = random.choice(state['empirical_leaks'])
+                    site['cum_leaks'] += 1
+                    if params['pregenerate_leaks']:
+                        state['leaks'].append(params['initial_leaks'][site['facility_ID']][leak])
                     else:
-                        leaksize = leak_rvs(
-                            site['leak_rate_dist'],
-                            params['max_leak_rate'],
-                            site['leak_rate_units'])
-                    state['leaks'].append({
-                        'leak_ID': site['facility_ID'] + '_' + str(len(state['leaks']) + 1)
-                        .zfill(10),
-                        'facility_ID': site['facility_ID'],
-                        'equipment_group': random.randint(1, int(site['equipment_groups'])),
-                        'rate': leaksize,
-                        'lat': float(site['lat']) + np.random.normal(0, 0.0001),
-                        'lon': float(site['lon']) + np.random.normal(0, 0.0001),
-                        'status': 'active',
-                        'tagged': False,
-                        'days_active': 0,
-                        'component': 'unknown',
-                        'date_began': state['t'].current_date,
-                        'date_tagged': None,
-                        'tagged_by_company': None,
-                        'tagged_by_crew': None,
-                        'requires_shutdown': False,
-                        'date_repaired': None,
-                        'repair_delay': None,
-                    })
+                        if params['use_empirical_rates'] == 'sample':
+                            leaksize = random.choice(state['empirical_leaks'])
+                        else:
+                            leaksize = leak_rvs(
+                                site['leak_rate_dist'],
+                                params['max_leak_rate'],
+                                site['leak_rate_units'])
+                        state['leaks'].append({
+                            'leak_ID': site['facility_ID'] + '_' + str(site['cum_leaks'])
+                            .zfill(10),
+                            'facility_ID': site['facility_ID'],
+                            'equipment_group': random.randint(1, int(site['equipment_groups'])),
+                            'rate': leaksize,
+                            'lat': float(site['lat']),
+                            'lon': float(site['lon']),
+                            'status': 'active',
+                            'tagged': False,
+                            'days_active': 0,
+                            'component': 'unknown',
+                            'date_began': state['t'].current_date,
+                            'date_tagged': None,
+                            'tagged_by_company': None,
+                            'tagged_by_crew': None,
+                            'requires_shutdown': False,
+                            'date_repaired': None,
+                            'repair_delay': None,
+                        })
 
         # Initialize operator
         if params['consider_operator']:
@@ -291,44 +243,52 @@ class LdarSim:
         """
         # First, determine whether each site gets a new leak or not
         params = self.parameters
-        for site in self.state['sites']:
-            n_leaks = np.random.binomial(1, self.parameters['LPR'])
-            if n_leaks == 0:
-                site.update({'n_new_leaks': 0})
-            else:
-                site.update({'n_new_leaks': n_leaks})
-
         # For each leak, create a dictionary and populate values for relevant keys
         for site in self.state['sites']:
+            if params['pregenerate_leaks']:
+                new_leaks = params['leak_timeseries'][
+                    site['facility_ID']][
+                    self.state['t'].current_timestep]
+                if new_leaks is None:
+                    n_leaks = 0
+                else:
+                    n_leaks = 1
+            else:
+                n_leaks = np.random.binomial(1, self.parameters['LPR'])
+            site.update({'n_new_leaks': n_leaks})
             if site['n_new_leaks'] > 0:
                 for leak in range(site['n_new_leaks']):
-                    if params['use_empirical_rates'] == 'sample':
-                        leaksize = random.choice(self.state['empirical_leaks'])
+                    if params['pregenerate_leaks']:
+                        self.state['leaks'].append(new_leaks)
                     else:
-                        leaksize = leak_rvs(
-                            site['leak_rate_dist'],
-                            params['max_leak_rate'],
-                            site['leak_rate_units'])
-                    self.state['leaks'].append({
-                        'leak_ID': site['facility_ID'] + '_' + str(len(self.state['leaks']) + 1)
-                        .zfill(10),
-                        'facility_ID': site['facility_ID'],
-                        'equipment_group': random.randint(1, int(site['equipment_groups'])),
-                        'rate': leaksize,
-                        'lat': float(site['lat']),
-                        'lon': float(site['lon']),
-                        'status': 'active',
-                        'days_active': 0,
-                        'tagged': False,
-                        'component': 'unknown',
-                        'date_began': self.state['t'].current_date,
-                        'date_tagged': None,
-                        'tagged_by_company': None,
-                        'tagged_by_crew': None,
-                        'requires_shutdown': False,
-                        'date_repaired': None,
-                        'repair_delay': None,
-                    })
+                        site['cum_leaks'] += 1
+                        if params['use_empirical_rates'] == 'sample':
+                            leaksize = random.choice(self.state['empirical_leaks'])
+                        else:
+                            leaksize = leak_rvs(
+                                site['leak_rate_dist'],
+                                params['max_leak_rate'],
+                                site['leak_rate_units'])
+                        self.state['leaks'].append({
+                            'leak_ID': site['facility_ID'] + '_' + str(site['cum_leaks'])
+                            .zfill(10),
+                            'facility_ID': site['facility_ID'],
+                            'equipment_group': random.randint(1, int(site['equipment_groups'])),
+                            'rate': leaksize,
+                            'lat': float(site['lat']),
+                            'lon': float(site['lon']),
+                            'status': 'active',
+                            'days_active': 0,
+                            'tagged': False,
+                            'component': 'unknown',
+                            'date_began': self.state['t'].current_date,
+                            'date_tagged': None,
+                            'tagged_by_company': None,
+                            'tagged_by_crew': None,
+                            'requires_shutdown': False,
+                            'date_repaired': None,
+                            'repair_delay': None,
+                        })
 
         return
 

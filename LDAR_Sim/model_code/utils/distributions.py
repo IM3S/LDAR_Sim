@@ -20,6 +20,8 @@
 # ------------------------------------------------------------------------------
 import scipy
 import json
+import pandas as pd
+import numpy as np
 from utils.unit_converter import gas_convert
 
 
@@ -83,3 +85,63 @@ def leak_rvs(distribution, max_size=None, gpsec_conversion=None):
         if not max_size or leaksize < max_size:
             break  # Rerun if value is larger than maximum
     return leaksize
+
+
+def unpackage_dist(program, wd=None):
+    # --------- Leak distributions -------------
+    program['dists'] = {}
+    _temp_dists = {}
+    # Use subtype_distributions file if true
+
+    if program['use_empirical_rates'] in ['fit', 'sample']:
+        program['empirical_leaks'] = np.array(pd.read_csv(
+            wd + program['leak_file']).iloc[:, 0])
+
+    if program['use_empirical_rates'] == 'fit':
+        program['dists'][0] = {
+            'dist': fit_dist(
+                samples=program['empirical_leaks'],
+                dist_type='lognorm'),
+            'units': ['gram', 'second']}
+
+    # If use_empirical_rates is false then use distributions
+    elif not program['use_empirical_rates']:
+        if program['subtype_distributions'][0]:
+            subtype_dists = pd.read_csv(
+                program['working_directory'] + program['subtype_distributions'][1])
+            col_headers = subtype_dists.columns[1:].tolist()
+            for row in subtype_dists.iterrows():
+                subtype_dist = {}
+                # Generate A temp Distribution dict of dists in file
+                for col in col_headers:
+                    subtype_dist[col] = row[1][col]
+                _temp_dists[row[1][0]] = subtype_dist
+
+        if len(_temp_dists) > 1:  # If there are sub_type dists
+            for key, dist in _temp_dists.items():
+                if dist['dist_type'] == 'lognorm':
+                    scale = np.exp(dist['dist_mu'])
+                else:
+                    scale = dist['dist_mu']
+                program['dists'][key] = {
+                    'dist': fit_dist(dist_type=dist['dist_type'],
+                                     shape=dist['dist_sigma'],
+                                     scale=scale),
+                    'units': [dist['dist_metric'], dist['dist_increment']]}
+        elif "leak_rate_dist" in program:
+            program['dist_type'] = program['leak_rate_dist'][0]
+            program['dist_scale'] = program['leak_rate_dist'][1]
+            program['dist_shape'] = program['leak_rate_dist'][2:-2]
+            program['leak_rate_units'] = program['leak_rate_dist'][-2:]
+            # lognorm is a common special case. used often for leaks. Mu is is commonly
+            # provided to discribe leak which is ln(dist_scale). For this type the model
+            # accepts mu in place of scale.
+            if program['dist_type'] == 'lognorm':
+                program['dist_scale'] = np.exp(program['dist_scale'])
+            # Use a subtype distribution code of zero if not using subtype distributions.
+            program['dists'][0] = {
+                'dist': fit_dist(dist_type=program['dist_type'],
+                                 shape=program['dist_shape'],
+                                 scale=program['dist_scale']),
+                'units': program['leak_rate_units']}
+            #  Empirical Leaks can be fit with the following
