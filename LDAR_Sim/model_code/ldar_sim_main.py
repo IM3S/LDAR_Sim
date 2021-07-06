@@ -22,8 +22,10 @@ from pathlib import Path
 
 from batch_reporting import BatchReporting
 from ldar_sim_run import ldar_sim_run
+from input_mapper import input_mapper
 import pandas as pd
 import os
+import sys
 import shutil
 import datetime
 import warnings
@@ -33,6 +35,12 @@ from generic_functions import check_ERA5_file
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
     # -----------------------------Global parameters--------------------------------
+    # Read default parameters
+    inputs = input_mapper()
+    print ('default parameters read')
+
+
+
     src_dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     src_dir = str(src_dir_path)
     root_dir = str(src_dir_path.parent)
