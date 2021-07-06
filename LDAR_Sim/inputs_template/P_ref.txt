@@ -2,6 +2,7 @@ P_ref = {
         'methods': {
             'OGI': {
                 'name': 'OGI',
+                'type': 'OGI',
                 'n_crews': 1,
                 'min_temp': -20,
                 'max_wind': 10,
@@ -13,6 +14,8 @@ P_ref = {
 		'consider_daylight': False 
             }
         },
+        'version': '2.0',
+        'parameter_level': 'program',
         'program_name': 'P_ref',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file

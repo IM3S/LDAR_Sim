@@ -2,6 +2,7 @@ P_sat = {
         'methods': {
 	             'satellite': {
                             'name': 'satellite',
+                            'type': 'satellite',
 			    'sat':'GHGSAT-D',
                             'n_crews': 1,
 			    'min_temp': -100,
@@ -32,6 +33,8 @@ P_sat = {
 			    'consider_daylight': False  
                             }
         },
+        'version': '2.0',
+        'parameter_level': 'program',
         'program_name': 'P_sat',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file
