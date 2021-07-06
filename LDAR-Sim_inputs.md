@@ -131,9 +131,9 @@ The `parameter_level` parameter can be one of three values:
 
 This `parameter_level` is vital to enable proper parameter validation.
 
-Methods require special consideration for several reasons. First, methods have `types`, that relate to specific method modules. For example, an OGI method is simulated using the OGI module. Users can build custom types or extend existing types, but some `type` is necessary to ensure LDAR-Sim knows what code to run. Second, there can be many different methods that are quite different, but have the same `type`. A good example is different OGI companies. You can run a simulation with multiple OGI companies, each specified as a unique method with unique agents, but both of the same type `OGI`. This is helpful to represent different work practices, different collection of parameters, or different approaches with the same technology. Third, because there are a large diversity of different methods in use, it is helpful to recycle the methods within different programs. Thus, methods can be implemented in different programs within the same simulation, but only specified once.
+Methods require special consideration for several reasons. First, methods have `types`, that relate to specific method modules. For example, an OGI method is simulated using the OGI module. Users can build custom types or extend existing types, but some `type` is necessary to ensure LDAR-Sim knows what code to run. Second, there can be many different methods that are quite different, but have the same `type`. A good example is different OGI companies. You can run a simulation with multiple OGI companies, each specified as a unique method with unique agents, but both of the same type `OGI`. This is helpful to represent different work practices, different collection of parameters, or different approaches with the same technology. Third, because there are a large diversity of different methods in use, it is helpful to recycle the methods within different programs. Thus, methods can be implemented in different programs within the same simulation, but only specified once. This can be useful to directly identify the impact of adding a method to a program as the program can be run with and without the new method and results directly compared.
 
-To recycle methods, the programs must specify the methods by a name.
+Consider the following simulation:
 
 ```buildoutcfg
 Global parameters
@@ -142,78 +142,62 @@ Programs:
         Reference LDAR method
     Test program:
         New LDAR method 1
+    Test program 2:
+        New LDAR method 1
         New LDAR method 2
 ```
 
-In LDAR Sim, to simplify, all supplied programs will be run in any 
+Here, there is a situation where `New LDAR method 1` is used in both `Test program` and `Test program 2`. The definition for `New LDAR method 1` can be recycled as it is common among two test programs.
 
-`Programs`
-In this example, `Global parameters` have no parent, they are the top level in the hierarchy. But global parameters have a number of programs as children, in this case `Reference program` and `Test program`. Both `Reference program` and `Test program` have the same parent, the `Global parameters`. The 3 different LDAR methods here have parents (the programs), but do not have children.
-
-These parent and child relationships can be specified within parameter files with the addition of several optional parameters:
-
-`name`: this is the name of the set of parameters. Or in the case of a program or method, the name of the program or method, respectively. No child or parent configuration will work without names. If you do not specify a name, LDAR-Sim will attempt to guess a name from the filename.
-
-`parent_name`: if this set of parameters is a child, it can specify its parent. Keep in mind that the parent will need to have the name key set for this work. This specification is for methods, which can specify the program they are to be deployed within.
-
-`children_names`: if this set of parameters has children, these can be specified here. In the case of global parameters, global parameters would have one or more In the case of programs, programs can have one or more methods as children.
-
-LDAR-Sim will attempt to resolve parent / child relationships from the parent end first.
-
-Here is an example to better explain how this works. The reference program parameter file looks like this:
+To specify this, we can refer to the program by name in the program definitions with the addition of the `method_names` parameter to our program.
 
 ```buildoutcfg
-parameters = {
+test_program = {
     'parameter_level': 'program',
-    'name': 'reference_program',
-    'children_names': ['reference_method'],
+    'method_names': ['new_LDAR_method_1'],
+    'methods': [],
     .... OTHER PROGRAM PARAMETERS ....
 }
 ```
 
-The reference program file looks like this:
+This `new_LDAR_method_1` has to be defined elsewhere to be called by name.
 
 ```buildoutcfg
-parameters = {
+new_LDAR_method_1 = {
     'parameter_level': 'method',
-    'name': 'reference_method',
-    .... OTHER METHOD PARAMETERS ....
+    'type': 'OGI',
+    .... OTHER OGI METHOD PARAMETERS ....
 }
 ```
 
-Note that the `parent_name` is not specified in this file, this is OK and probably the preferred way to do it as the method can be attached to any program in the future.
-
-The test program file looks like this:
+When the simulation is put together, the program will be assembled to look like this:
 
 ```buildoutcfg
-parameters = {
+test_program = {
     'parameter_level': 'program',
-    'name': 'test_program',
-    'children_names': ['new_ldar_method1', 'new_ldar_method2'],
+    'method_names': ['new_LDAR_method_1'],
+    'methods': [
+        'new_LDAR_method_1': {
+            'parameter_level': 'method',
+            'type': 'OGI',
+            .... OTHER OGI METHOD PARAMETERS ....
+        }
+    ],
     .... OTHER PROGRAM PARAMETERS ....
 }
 ```
 
-The global parameters can then look like this:
+To review, the following parameters are necessary to enable this modularization and reproducibility within the parameter suites:
 
-```buildoutcfg
-parameters = {
-    'parameter_level': 'global',
-    'children_names': ['reference_program', 'test_program'],
-    .... OTHER GLOBAL PARAMETERS ....
-}
-```
+`parameter_level`: `global`, `program`, or `method`, this defines the target level in the hierarchy. Without specification, LDAR-Sim interprets the parameters as global.
 
-Putting it together, the series of parameter files required include:
+`type`: in method definitions `type` provides a lookup for checking parameters and allows lookup of default parameters, which enables partial parameter specification and out of the box reverse compatibility.
 
-- global parameters, that specify the children programs in this simulation
-- parameters for the reference program
-- parameters for the test program
-- parameters for the reference method, as it is referenced as a child of the reference program
-- parameters for the test program
-- parameters for the new LDAR methods 1 and 2, because they are referenced as required methods for the test program
+`method_names`: shorthand method to specify methods by their names, and include them in more than one simulation easily and reliably. Used only in programs.
 
-While you could put all the parameters in one giant parameter file (and not specify any parent / child relationships), using flexible parameter files is easier as you could easily recycle your methods in different programs and maintain a library of programs and methods that can be used at any time in the future.
+## Ordering of programs and method updates
+
+The parameter file is respected, except for 
 
 ## Parameter File Formats
 
@@ -223,6 +207,8 @@ LDAR-Sim includes a flexible input parameter mapper that accepts a variety of in
 - yaml files (extension = '.yaml' or '.yml')
 - json files (extension = '.json')
 
+Keep in mind the need for precision with input parameter types and review how each of these formats handle input data types. For example, `10` is inferred as an integer, where `10.0` is inferred as a floating point value - these are different data types.
+
 ## Notes for Developers
 
 If you are developing for LDAR-Sim, please adhere to the following rules:
@@ -231,11 +217,11 @@ If you are developing for LDAR-Sim, please adhere to the following rules:
 
 2. All parameters must sit in a key-value hierarchy that semantically makes sense.
 
-3. All parameters must have a defined type.
+3. All parameter files require `parameter_level` to define the position within the hierarchy.
 
 4. If you are using the '.txt' format as a python dictionary of parameters that is executed, you must name the dictionary as a variable that is identical to the name of the file, minus the file extension.
 
-If your file name is ```P_ref.txt``` you must have a dictionary in the file that looks like this:
+If your file name is `P_ref.txt` you must have a dictionary in the file that looks like this:
 
 ```buildoutcfg
 P_ref = {

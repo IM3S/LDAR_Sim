@@ -93,9 +93,12 @@ class input_manager:
             rule presently.
 
         This sets three class variables to represent default parameters:
-        self.global_parameters = all global parameters as a dictionary
-        self.program_parameters = all program parameters as a dictionary
-        self.method_parameters = a dictionary where the names refer to all possible methods
+        self.global_parameters = all global parameters as a dictionary.
+        self.program_parameters = all known program parameters as a dictionary.
+        self.method_parameters = a dictionary where the names are a lookup by type. This contains all known method types
+            with a full listing of possible parameters, this is possible to lookup via type. For example
+            self.method_parameters['OGI'] will return a full listing of all OGI parameters that is subsequently used
+            for type validation and provide the base of default parameters to build upon.
         """
 
         # Check if program parameter filenames were supplied, else try to read them in
@@ -126,11 +129,16 @@ class input_manager:
             temp_methods.append(program.pop['methods'])
             self.program_parameters.update(program)
 
-        # 4) accumulate the method parameters so there is a dictionary of possible method types, each with all
-        #    known parameters, in a default and completely defined format
+        # 4) accumulate the method samples so there is a dictionary of possible method types, each with all
+        #    known parameters, in a default and completely defined format.
         self.method_parameters = {}
         for method_samples in temp_methods:
-            self.method_parameters.update(method_samples)
+            for i in method_samples:
+                # Address an issue where 'type' is not specified, allow reverse compatibility by using the name
+                if not 'type' in method_samples[i]:
+                    method_samples[i]['type'] = i
+
+                self.method_parameters.update({method_samples[i]['type']: method_samples[i]})
 
         # 5) set default global parameters, programs and methods are dealt with separately
         parameters['programs'] = []
@@ -172,34 +180,48 @@ class input_manager:
                 programs.append(new_parameters.pop('programs'))
                 check_types(self.global_parameters, new_parameters, omit_keys = ['programs', 'methods'])
                 self.global_parameters.update(new_parameters)
+
             elif new_parameters['parameter_level'] == 'program':
                 check_types(self.program_parameters, new_parameters, omit_keys = ['methods'])
-                programs.append(new_parameters)
+
+                # Copy all default program parameters to build upon by calling update, then append
+                new_program = copy.deepcopy(self.program_parameters)
+                new_program.update(new_parameters)
+                programs.append(new_program)
+
             elif new_parameters['parameter_level'] == 'method':
                 orphan_methods.append(new_parameters)
 
+            else:
+                sys.exit('supplied parameter_level is not possible to parse')
+
         # Second, install the programs, checking for specified children methods
         for program in programs:
-            # Find any orphaned children
-            if 'children_names' in program:
-                for children in program['children_names']:
-                    child_found = False
-                    for orphan in orphan_methods:
-                        if 'name' in orphan and orphan['name'] == children:
-                            program['methods'].update(copy.deepcopy(orphan))
-                            child_found = True
+            # Find any orphaned methods that can be installed in this program
+            if 'method_names' in program:
+                for method_name in program['method_names']:
+                    method_found = False
+                    for i in orphan_methods:
+                        if method_name == orphan_methods[i]:
+                            program['methods'].update (copy.deepcopy(orphan_methods[i]))
+                            method_found = True
 
-                    if not child_found:
-                        print('Warning, the following child method was specified by not supplied ' + children)
+                    if not method_found:
+                        print('Warning, the following method was specified by not supplied ' + method_name)
 
-            # Next, perform type checking on the methods to ensure the supplied methods are compliant
-            for method in program['methods']:
-                method_type
-                check_types(self.method_parameters[method_name], program['methods'][method_name])
+            # Next, perform type checking and updating from default types, even for methods pre-specified
+            for i in program['methods']:
+                method_type = program['methods'][i]['type']
+                check_types(self.method_parameters[method_type], program['methods'][i])
+                new_method = copy.deepcopy(self.method_parameters[method_type])
 
-        # Third, append the parameters to the global parameters and return
+                # update from the default version, and re-assign
+                new_method.update(program['methods'][i])
+                program['methods'][i] = new_method
+
+        # Third, append the parameters to the global parameters and return a copy
         self.global_parameters['programs'] = programs
-        return(self.global_parameters)
+        return(copy.deepcopy(self.global_parameters))
 
     def read_parameter_files (self, parameter_filenames):
         """Method to read a collection of parameter files
