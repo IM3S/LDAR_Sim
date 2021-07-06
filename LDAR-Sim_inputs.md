@@ -37,7 +37,7 @@ python ldar_sim_main.py parameter_file1.txt parameter_file2.txt
 
 ## Parameter File Structure
 
-Parameter files are all key-value pairs (e.g., Python dictionary), with multiple levels of nesting. In general, there are 3 layers of nesting:
+Parameter files are all key-value pairs (e.g., Python dictionary), with multiple levels of nesting. However, there are 3 important levels of nesting
 
 - `global`: global parameters that are common across the simulation such as system parameters, etc.
 - `program`: program parameters that relate to a specific emissions reduction program, of which there could be multiple within a given simulation.
@@ -86,7 +86,7 @@ parameters = {
 }
 ```
 
-Keep in mind that only 2 parameters have been changed with these parameter files - all other parameters run with the default values. We have attempted to choose representative defaults, but be aware the default values may not be what is appropriate for your use case.
+Keep in mind that only 2 parameters have been changed with these parameter files - all other parameters run with the default values. We have attempted to choose representative defaults, but be aware the default values may not be what is appropriate for your use case - it is your responsibility to verify the default parameters are appropriate.
 
 In this example, changing the `n_simulations` key to 3 makes the model run faster and provides a way to test the model without waiting for it to complete 30 simulations. A reasonable workflow with these parameters would be something like running the model in a test configuration with:
 
@@ -119,9 +119,9 @@ For example, running an existing program with an existing collection of methods 
 
 While global parameters are straightforward to specify this way, and the above example shows how to do this - a few extra parameters are required to directly specify programs or methods, which are at different levels in the hierarchy.
 
-## Specifying parent / child relationships and hierarchy
+## LDAR-Sim simulation hierarchy
 
-To tell LDAR-Sim what level in the hierarchy your parameter file is destined for, you can optionally specify a `parameter_level` parameter that will specify what level your parameter file is aimed at - otherwise LDAR-Sim will interpret it as global parameters.
+LDAR-Sim uses a 3 level hierarchy of simulations, programs, and methods. To tell LDAR-Sim what level in the hierarchy your parameter file is destined for, you should specify a `parameter_level` parameter that will specify what level your parameter file is aimed at - otherwise LDAR-Sim will interpret it as global parameters.
 
 The `parameter_level` parameter can be one of three values:
 
@@ -129,7 +129,11 @@ The `parameter_level` parameter can be one of three values:
 - `program`: parameters are used as a program definition.
 - `method`: parameters are used as a method definition.
 
-This `parameter_level` can also be supplemented by specification of the parent / child relationships among different parameter files. Here is the example simulation hierarchy from above:
+This `parameter_level` is vital to enable proper parameter validation.
+
+Methods require special consideration for several reasons. First, methods have `types`, that relate to specific method modules. For example, an OGI method is simulated using the OGI module. Users can build custom types or extend existing types, but some `type` is necessary to ensure LDAR-Sim knows what code to run. Second, there can be many different methods that are quite different, but have the same `type`. A good example is different OGI companies. You can run a simulation with multiple OGI companies, each specified as a unique method with unique agents, but both of the same type `OGI`. This is helpful to represent different work practices, different collection of parameters, or different approaches with the same technology. Third, because there are a large diversity of different methods in use, it is helpful to recycle the methods within different programs. Thus, methods can be implemented in different programs within the same simulation, but only specified once.
+
+To recycle methods, the programs must specify the methods by a name.
 
 ```buildoutcfg
 Global parameters
@@ -141,6 +145,9 @@ Programs:
         New LDAR method 2
 ```
 
+In LDAR Sim, to simplify, all supplied programs will be run in any 
+
+`Programs`
 In this example, `Global parameters` have no parent, they are the top level in the hierarchy. But global parameters have a number of programs as children, in this case `Reference program` and `Test program`. Both `Reference program` and `Test program` have the same parent, the `Global parameters`. The 3 different LDAR methods here have parents (the programs), but do not have children.
 
 These parent and child relationships can be specified within parameter files with the addition of several optional parameters:
@@ -215,6 +222,34 @@ LDAR-Sim includes a flexible input parameter mapper that accepts a variety of in
 - executable python files (extension = '.txt')
 - yaml files (extension = '.yaml' or '.yml')
 - json files (extension = '.json')
+
+## Notes for Developers
+
+If you are developing for LDAR-Sim, please adhere to the following rules:
+
+1. All parameters must be documented, refer to the examples below on the precise format.
+
+2. All parameters must sit in a key-value hierarchy that semantically makes sense.
+
+3. All parameters must have a defined type.
+
+4. If you are using the '.txt' format as a python dictionary of parameters that is executed, you must name the dictionary as a variable that is identical to the name of the file, minus the file extension.
+
+If your file name is ```P_ref.txt``` you must have a dictionary in the file that looks like this:
+
+```buildoutcfg
+P_ref = {
+    .... P_ref parameters ....
+}
+```
+
+Do not do this:
+
+```buildoutcfg
+some_other_name = {
+    .... P_ref parameters ....
+}
+```
 
 # General Inputs
 
