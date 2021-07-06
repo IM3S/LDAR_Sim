@@ -2,6 +2,7 @@ P_cont = {
         'methods': {
 	                 'fixed': {
                             'name': 'fixed',
+                            'type': 'fixed',
                             'min_temp': -100,
                             'max_wind': 100,
                             'max_precip': 100,
@@ -28,6 +29,8 @@ P_cont = {
 			    'consider_daylight': False
                             }
         },
+        'version': '2.0',
+        'parameter_level': 'program',
         'program_name': 'P_cont',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file

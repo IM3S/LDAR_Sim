@@ -22,7 +22,7 @@ from pathlib import Path
 
 from batch_reporting import BatchReporting
 from ldar_sim_run import ldar_sim_run
-from input_mapper import input_mapper
+from input_manager import InputManager
 import pandas as pd
 import os
 import sys
@@ -34,89 +34,74 @@ from generic_functions import check_ERA5_file
 
 if __name__ == '__main__':
     # ------------------------------------------------------------------------------
-    # -----------------------------Global parameters--------------------------------
-    # Read default parameters
-    inputs = input_mapper()
-    print ('default parameters read')
+    # -----------------------------Read parameters----------------------------------
+    parameter_filenames = sys.argv[1:]
+    if len(parameter_filenames) == 0:
+        print('No parameter files supplied? Parameter files must be supplied as arguments')
+        print('Running the simulation with default programs for testing purposes')
+        #parameter_filenames = ['..//inputs_template//P_ref.txt',
+        #                       '..//inputs_template//P_aircraft.txt',
+        #                       '..//inputs_template//P_truck.txt']
+        parameter_filenames = ['..//sample_simulations//P_ref.yaml',
+                               '..//sample_simulations//OGI.yaml']
 
-
-
-    src_dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    src_dir = str(src_dir_path)
-    root_dir = str(src_dir_path.parent)
-    wd = os.path.abspath(root_dir) + "/inputs_template/"
-    output_directory = os.path.abspath(root_dir) + "/outputs/"
-    # Programs to compare; Position one should be the reference program (P_ref)
-    program_list = ['P_ref', 'P_aircraft', 'P_truck']
+    # Parse, map, validate parameters
+    input_parameters = InputManager()
+    parameters = input_parameters.read_and_validate_parameters(parameter_filenames = parameter_filenames)
 
     # -----------------------------Set up programs----------------------------------
-    programs = []
-
     warnings.filterwarnings('ignore')    # Temporarily mute warnings
 
-    for p in range(len(program_list)):
-        file = wd + program_list[p] + '.txt'
-        exec(open(file).read())
-        programs.append(eval(program_list[p]))
-
-    n_processes = programs[0]['n_processes']
-    print_from_simulations = programs[0]['print_from_simulations']
-    n_simulations = programs[0]['n_simulations']
-    spin_up = programs[0]['spin_up']
-    ref_program = program_list[0]
-    write_data = programs[0]['write_data']
-
     # Check whether ERA5 data is already in the working directory and download data if not
-    check_ERA5_file(wd, programs[0]['weather_file'])
+    check_ERA5_file(parameters['wd'], parameters['weather_file'])
 
-    if os.path.exists(output_directory):
-        shutil.rmtree(output_directory)
+    if os.path.exists(parameters['output_directory']):
+        shutil.rmtree(parameters['output_directory'])
 
-    os.makedirs(output_directory)
+    os.makedirs(parameters['output_directory'])
+
+    # Write the parameters for the simulation to the output directory
+    input_parameters.write_parameters(os.path.join(parameters['output_directory'], 'parameters.yaml'))
 
     # Set up simulation parameter files
     simulations = []
-    for i in range(n_simulations):
-        for j in range(len(programs)):
+    for i in range(parameters['n_simulations']):
+        for j in range(len(parameters['programs'])):
             opening_message = "Simulating program {} of {} ; simulation {} of {}".format(
-                j + 1, len(programs), i + 1, n_simulations
+                j + 1, len(parameters['programs']), i + 1, parameters['n_simulations']
             )
             simulations.append(
-                [{'i': i, 'program': programs[j],
-                  'wd': wd,
-                  'output_directory':output_directory,
+                [{'i': i, 'program': parameters['programs'][j],
+                  'wd': parameters['wd'],
+                  'output_directory':parameters['output_directory'],
                   'opening_message': opening_message,
-                  'print_from_simulation': print_from_simulations}])
+                  'print_from_simulation': parameters['print_from_simulations']}])
 
-    # ldar_sim_run(simulations[1][0])
     # Perform simulations in parallel
-    with mp.Pool(processes=n_processes) as p:
+    with mp.Pool(processes=parameters['n_processes']) as p:
         res = p.starmap(ldar_sim_run, simulations)
 
     # Do batch reporting
-    if write_data:
+    if parameters['write_data']:
         # Create a data object...
         reporting_data = BatchReporting(
-            output_directory, programs[0]['start_year'],
-            spin_up, ref_program)
-        if n_simulations > 1:
+            parameters['output_directory'], parameters['start_year'],
+            parameters['spin_up'], parameters['reference_program'])
+        if parameters['n_simulations'] > 1:
             reporting_data.program_report()
-            if len(programs) > 1:
+            if len(parameters['programs']) > 1:
                 reporting_data.batch_report()
                 reporting_data.batch_plots()
 
     # Write metadata
-    metadata = open(output_directory + '/_metadata.txt', 'w')
-    metadata.write(str(programs) + '\n' +
-                   str(datetime.datetime.now()))
-
-    metadata.close()
+    with open(parameters['output_directory'] + '/_metadata.txt', 'w') as f:
+        f.write(str(parameters['programs']) + '\n' + str(datetime.datetime.now()))
 
     # Write sensitivity analysis data on a program by program basis
     sa_df = pd.DataFrame(res)
     if 'program' in sa_df.columns:
         for program in sa_df['program'].unique():
             sa_out = sa_df.loc[sa_df['program'] == program, :]
-            sa_outfile_name = os.path.join(wd, 'sensitivity_analysis',
+            sa_outfile_name = os.path.join(parameters['wd'], 'sensitivity_analysis',
                                            'sensitivity_' + program + '.csv')
             sa_out.to_csv(sa_outfile_name, index=False)

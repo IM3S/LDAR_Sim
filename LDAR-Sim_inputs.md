@@ -35,15 +35,17 @@ To run the model, supply one or more input parameter files as arguments to the p
 python ldar_sim_main.py parameter_file1.txt parameter_file2.txt
 ```
 
+We recommend running the model with a working directory set to /LDAR_Sim/model_code to ensure the relative file references in default parameters work properly.
+
 ## Parameter File Structure
 
-Parameter files are all key-value pairs (e.g., Python dictionary), with multiple levels of nesting. However, there are 3 important levels of nesting
+Parameter files are all key-value pairs (e.g., Python dictionary), with multiple levels of nesting. The model runs with 3 main levels:
 
 - `global`: global parameters that are common across the simulation such as system parameters, etc.
 - `program`: program parameters that relate to a specific emissions reduction program, of which there could be multiple within a given simulation.
 - `method`: emissions reduction methods (e.g., specific LDAR technologies or LDAR companies) that are deployed within a program. Methods are specified in a given program for deployment.
 
-A typical simulation would involve at least two programs, a reference program and a test program. The reference program could deploy one reference method. The test program could deploy two new LDAR methods. Each program would be run on the asset base multiple times through time, to create a statistical representation of the emissions and cost data. Finally, the statistical distribution of the reference program can be compared with the statistical distribution of the test program. Fundamentally, it is those differences between the programs that represents the important information that is of interest to users of LDAR-Sim.
+A typical simulation would involve at least two programs, a reference program and a test program. The reference program could deploy one reference method. The test program could deploy two new LDAR methods. Each program would be run on the asset base multiple times through time, to create a statistical representation of the emissions and cost data. Finally, the statistical distribution of the reference program can be compared with the statistical distribution of the test program. It is often the differences between the programs that represents the important information that is of interest to users of LDAR-Sim.
 
 Here is an example of the hierarchy:
 
@@ -63,6 +65,7 @@ Parameter files are read on top of each other, starting with the default set of 
 
 ```buildoutcfg
 parameters = {
+    'version': '2.0',
     'n_simulations': 30,
     'LPR': 0.0065,
 }
@@ -72,6 +75,7 @@ This will revise the `n_simulations` key to 30, from whatever was default, and t
 
 ```buildoutcfg
 parameters = {
+    'version': '2.0',
     'n_simulations': 3,
 }
 ```
@@ -80,6 +84,7 @@ This will replace the `n_simulations` key with 3 (instead of 30), but leave the 
 
 ```buildoutcfg
 parameters = {
+    'version': '2.0',
     'n_simulations': 3,
     'LPR': 0.0065,
     .... ALL OTHER PARAMETERS RUN WITH DEFAULT VALUES ....
@@ -94,7 +99,7 @@ In this example, changing the `n_simulations` key to 3 makes the model run faste
 python ldar_sim_main.py parameter_file1.txt parameter_file2.txt
 ```
 
-Then, when we are comfortable understanding the outputs and want to run the model for longer to get more statistically valid results, run:
+Then, when comfortable understanding the outputs and ready to run the model for longer to get more statistically valid results, run:
 
 ```buildoutcfg
 python ldar_sim_main.py parameter_file1.txt
@@ -119,9 +124,9 @@ For example, running an existing program with an existing collection of methods 
 
 While global parameters are straightforward to specify this way, and the above example shows how to do this - a few extra parameters are required to directly specify programs or methods, which are at different levels in the hierarchy.
 
-## LDAR-Sim simulation hierarchy
+## LDAR-Sim Parameter Hierarchy
 
-LDAR-Sim uses a 3 level hierarchy of simulations, programs, and methods. To tell LDAR-Sim what level in the hierarchy your parameter file is destined for, you should specify a `parameter_level` parameter that will specify what level your parameter file is aimed at - otherwise LDAR-Sim will interpret it as global parameters.
+LDAR-Sim uses a 3 level hierarchy of simulations, programs, and methods. To tell LDAR-Sim what level in the hierarchy your parameter file is destined for, you should specify a `parameter_level` parameter that will specify what level your parameter file is aimed at - otherwise LDAR-Sim will interpret it as global.
 
 The `parameter_level` parameter can be one of three values:
 
@@ -129,9 +134,13 @@ The `parameter_level` parameter can be one of three values:
 - `program`: parameters are used as a program definition.
 - `method`: parameters are used as a method definition.
 
-This `parameter_level` is vital to enable proper parameter validation.
+While this is relative intuitive, there are special considerations for methods:
 
-Methods require special consideration for several reasons. First, methods have `types`, that relate to specific method modules. For example, an OGI method is simulated using the OGI module. Users can build custom types or extend existing types, but some `type` is necessary to ensure LDAR-Sim knows what code to run. Second, there can be many different methods that are quite different, but have the same `type`. A good example is different OGI companies. You can run a simulation with multiple OGI companies, each specified as a unique method with unique agents, but both of the same type `OGI`. This is helpful to represent different work practices, different collection of parameters, or different approaches with the same technology. Third, because there are a large diversity of different methods in use, it is helpful to recycle the methods within different programs. Thus, methods can be implemented in different programs within the same simulation, but only specified once. This can be useful to directly identify the impact of adding a method to a program as the program can be run with and without the new method and results directly compared.
+- First, methods have `types`, that relate to specific method modules. For example, an OGI method is simulated using the OGI module. Users can build custom types or extend existing types, but some `type` is necessary to ensure LDAR-Sim knows what code to run.
+  
+- Second, methods have names. This is necessary as there can be many different methods that are quite different, but have the same `type`. A good example is different OGI companies. You can run a simulation with multiple OGI companies, each specified as a unique method with unique agents, but both of the same type `OGI`. This is helpful to represent different work practices, different collection of parameters, or different approaches with the same technology.
+  
+- Third, because methods are often carefully designed and used in treatment / control experiments, it is helpful to allow reuse of specific methods by name.
 
 Consider the following simulation:
 
@@ -147,12 +156,13 @@ Programs:
         New LDAR method 2
 ```
 
-Here, there is a situation where `New LDAR method 1` is used in both `Test program` and `Test program 2`. The definition for `New LDAR method 1` can be recycled as it is common among two test programs.
+Here, there is a situation where `New LDAR method 1` is used in both `Test program` and `Test program 2`. The definition for `New LDAR method 1` can and should be specified only once and reused as it is common among two test programs.
 
-To specify this, we can refer to the program by name in the program definitions with the addition of the `method_names` parameter to our program.
+To specify this, we can refer to the program by name in the program definitions with the addition of the `method_names` parameter to our program. Note, we leave the `methods` key empty as the specified `new_LDAR_method_1` will be injected in at runtime.
 
 ```buildoutcfg
-test_program = {
+test_program_1 = {
+    'version': '2.0',
     'parameter_level': 'program',
     'method_names': ['new_LDAR_method_1'],
     'methods': [],
@@ -160,10 +170,11 @@ test_program = {
 }
 ```
 
-This `new_LDAR_method_1` has to be defined elsewhere to be called by name.
+This `new_LDAR_method_1` has to be defined elsewhere in a separate parameter file to be called by name.
 
 ```buildoutcfg
 new_LDAR_method_1 = {
+    'version': '2.0',
     'parameter_level': 'method',
     'type': 'OGI',
     .... OTHER OGI METHOD PARAMETERS ....
@@ -174,6 +185,7 @@ When the simulation is put together, the program will be assembled to look like 
 
 ```buildoutcfg
 test_program = {
+    'version': '2.0',
     'parameter_level': 'program',
     'method_names': ['new_LDAR_method_1'],
     'methods': [
@@ -195,10 +207,6 @@ To review, the following parameters are necessary to enable this modularization 
 
 `method_names`: shorthand method to specify methods by their names, and include them in more than one simulation easily and reliably. Used only in programs.
 
-## Ordering of programs and method updates
-
-The parameter file is respected, except for 
-
 ## Parameter File Formats
 
 LDAR-Sim includes a flexible input parameter mapper that accepts a variety of input parameter formats, choose the one that you like the best. Yaml[YAML](https://en.wikipedia.org/wiki/YAML) is the easiest to read for humans, allows inline comments, and is recommended. The following formats are accepted:
@@ -207,7 +215,29 @@ LDAR-Sim includes a flexible input parameter mapper that accepts a variety of in
 - yaml files (extension = '.yaml' or '.yml')
 - json files (extension = '.json')
 
-Keep in mind the need for precision with input parameter types and review how each of these formats handle input data types. For example, `10` is inferred as an integer, where `10.0` is inferred as a floating point value - these are different data types.
+Keep in mind the need for precision with input parameter types and review how each of these formats handle input data types. For example, `10` is inferred as an integer, where `10.0` is inferred as a floating point value - these are different data types and will fail validation.
+
+For example, here is a program definition in yaml:
+
+```buildoutcfg
+version: '2.0'
+parameter_level: program
+```
+
+Here is a method definition in yaml:
+
+```buildoutcfg
+version: '2.0'  
+parameter_level: method
+awesome_method:
+  type: awesome_technology
+```
+
+Note that programs are interpreted as a flat list of parameters that are incorporated into a list where methods have one parameter (the method name), and other method parameters nested below.
+
+## Versioning of Parameter Files
+
+All parameter files must specify a version to enable mapping and reverse compatiblity. This versioning is used to call code that modifies a different version of the code to run properly. In cases this is simple mapping of parameters, in other cases, this involves calculations.
 
 ## Notes for Developers
 
@@ -215,11 +245,34 @@ If you are developing for LDAR-Sim, please adhere to the following rules:
 
 1. All parameters must be documented, refer to the examples below on the precise format.
 
-2. All parameters must sit in a key-value hierarchy that semantically makes sense.
+2. All parameters must sit in a key-value hierarchy that semantically makes sense and can be understood by the diversity of users that use LDAR-Sim.
 
 3. All parameter files require `parameter_level` to define the position within the hierarchy.
 
-4. If you are using the '.txt' format as a python dictionary of parameters that is executed, you must name the dictionary as a variable that is identical to the name of the file, minus the file extension.
+4. All parameter files must specify the version and appropriate entries to the input mappers must be completed. Changing a parameter name? It needs a hook to allow reverse compatibility. Changing parameter units? It needs a hook. Depreciating parameters or simplifying? It needs a hook. Etc.
+
+5. If adding new functionality - please set the default to be 'off' or otherwise reverse compatible with existing functionality - this allows test simulations to run properly. Keep in mind older parameter files will use this default without realizing it, and if the behaviour of LDAR-Sim changes, you must add appropriate mapping hooks to the input mapper such that upon detecting an older parameter file, parameters are set to run identical to the old model.
+
+6. Please do not modify parameters in the program during simulation - consider parameters as 'read only' throughout the simulation.
+
+7. Any lists must have the same type. Here is an example of a correct configuration:
+
+```buildoutcfg
+'parameter_x': [1.2, 1.4, 1.6]
+```
+
+Here are some examples that are disallowed and do not work:
+
+```buildoutcfg
+'parameter_x': [True, 'abracadabra', 33.0]
+'parameter_y': [1.2, 1, 1.6]
+```
+
+Why does the above example fail? Here, `parameter_x` includes both boolean, string, and floating point values - this should be replaced with a dictionary that has names for each element - in addition to enabling compatiblity, it is significantly more clear for users to understand what `True` means, etc. Further, there will be a part of the program that looks for a string by referencing the second element in the list, e.g., `parameter_x[1]`. Problems will result if the parameters are re-ordered or one element is forgotten.
+
+As a second example, `parameter_y` includes a list of floating point values `1.2`, and integer values `1`. Floating point values should be used for things like measurements, whereas integers should be used for things like counts, timesteps, etc.
+
+8. If you are using the '.txt' format as a python dictionary of parameters that is executed, you must name the dictionary as a variable that is identical to the name of the file, minus the file extension.
 
 If your file name is `P_ref.txt` you must have a dictionary in the file that looks like this:
 
@@ -238,6 +291,42 @@ some_other_name = {
 ```
 
 # General Inputs
+
+## version
+
+**Data type:** String
+
+**Default input:** '2.0'
+
+**Description:** The version of LDAR-Sim that this parameter specification is valid for.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## parameter_level
+
+**Data type:** String
+
+**Default input:** 'global'
+
+**Description:** The level in the parameter hierarchy that this parameter specification is aimed at. Either `global`, `program`, or `method`.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## method_names
+
+**Data type:** List of strings
+
+**Default input:** []
+
+**Description:** For use within program specifications to facilitate specification of methods by name. This allows program definitions to re-use method definitions. These strings must correspond to the names of methods that have been read into LDAR-Sim in another parameter file.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
 
 ## consider\_operator
 
@@ -763,6 +852,41 @@ If using different weather files for different programs (e.g., when comparing di
 **Notes of caution:** Must be True to make automated maps and plots.
 
 # Close-range (OGI) Inputs
+## version
+
+**Data type:** String
+
+**Default input:** '2.0'
+
+**Description:** The version of LDAR-Sim that this parameter specification is valid for.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## parameter_level
+
+**Data type:** String
+
+**Default input:** 'global'
+
+**Description:** The level in the parameter hierarchy that this parameter specification is aimed at. Either `global`, `program`, or `method`.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## type
+
+**Data type:** String
+
+**Default input:** ''
+
+**Description:** For methods, the type of method, which corresponds to the module used to simulate the method.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
 
 ## consider_daylight
 
@@ -939,6 +1063,41 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 **Notes of caution:** Many service providers have automated systems for reporting leaks as soon as they are found and tagged. However, some companies still provide paper or pdf reports days or even weeks later. It is important to understand the expectations between the duty holder and the service provider.
 
 # Screening Inputs
+## version
+
+**Data type:** String
+
+**Default input:** '2.0'
+
+**Description:** The version of LDAR-Sim that this parameter specification is valid for.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## parameter_level
+
+**Data type:** String
+
+**Default input:** 'global'
+
+**Description:** The level in the parameter hierarchy that this parameter specification is aimed at. Either `global`, `program`, or `method`.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## type
+
+**Data type:** String
+
+**Default input:** ''
+
+**Description:** For methods, the type of method, which corresponds to the module used to simulate the method.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
 
 ## name
 
@@ -1043,6 +1202,42 @@ See Section 2.11.
 ## name
 
 See Section 2.1.
+
+## version
+
+**Data type:** String
+
+**Default input:** '2.0'
+
+**Description:** The version of LDAR-Sim that this parameter specification is valid for.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## parameter_level
+
+**Data type:** String
+
+**Default input:** 'global'
+
+**Description:** The level in the parameter hierarchy that this parameter specification is aimed at. Either `global`, `program`, or `method`.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
+
+## type
+
+**Data type:** String
+
+**Default input:** ''
+
+**Description:** For methods, the type of method, which corresponds to the module used to simulate the method.
+
+**Notes on acquisition:** No data acquisition required.
+
+**Notes of caution:** N/A
 
 ## [various\_weather]
 

@@ -2,6 +2,7 @@ P_aircraft = {
         'methods': {
 	                 'aircraft': {
                             'name': 'aircraft',
+                            'type': 'aircraft',
                             'n_crews': 1,
                             'min_temp': -30,
                             'max_wind': 10,
@@ -19,6 +20,7 @@ P_aircraft = {
                             },
                    'OGI_FU': {
                             'name': 'OGI_FU',
+                            'type': 'OGI_FU',
                             'n_crews': 1,
             		    'min_temp': -20,
               		    'max_wind': 10,
@@ -30,6 +32,8 @@ P_aircraft = {
 			    'consider_daylight': False  
                             }
         },
+        'version': '2.0',
+        'parameter_level': 'program',
         'program_name': 'P_aircraft',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file

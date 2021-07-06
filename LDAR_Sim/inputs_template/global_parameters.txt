@@ -1,8 +1,6 @@
-parameters = {
+global_parameters = {
+    'version': '2.0',
     'parameter_level': 'global',
-    'parent_name': 'global',
-    'parameter_version': '1.0',
-    'reference_program': 'P_ref',
     'wd': '..//inputs_template//',
     'output_directory': '..//outputs//',
     'n_processes':  None,
@@ -11,4 +9,8 @@ parameters = {
     'spin_up': 0,
     'write_data':  True,
     'programs': [],
+    'weather_file': "ERA5_AB_1x1_hourly_2015_2019.nc",
+    'timesteps': 1000,
+    'start_year': 2017,
+    'reference_program': 'P_ref',
 }

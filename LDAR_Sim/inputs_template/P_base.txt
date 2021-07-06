@@ -1,6 +1,8 @@
 P_base = {
         'methods': {
         },
+        'version': '2.0',
+        'parameter_level': 'program',
         'program_name': 'P_base',
         'n_simulations': 2, 	# Minimum of 2 simulations to get batch plots
         'timesteps': 1000,  	# Up to ~5600 for 16 year nc file
