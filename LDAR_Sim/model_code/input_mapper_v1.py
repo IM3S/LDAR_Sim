@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
 # Program:     The LDAR Simulator (LDAR-Sim)
-# File:        LDAR-Sim input manager
+# File:        LDAR-Sim input mapper for version 1.0 files
 # Purpose:     Input mapper for version 1.0 files
 #
 # Copyright (C) 2018-2020  Thomas Fox, Mozhou Gao, Thomas Barchyn, Chris Hugenholtz
