@@ -35,13 +35,18 @@ class WeatherLookup:
         # Read in weather data as NetCDF file(s)
 
         self.weather_data = Dataset(
-            self.parameters['working_directory'] + self.parameters['weather_file'],
+            self.parameters['working_directory'] +
+            self.parameters['weather_file'],
             'r')  # Load wind and temp data
         self.weather_data.set_auto_mask(False)  # Load wind and temp data
-        self.temps = np.array(self.weather_data.variables['t2m'])  # Extract temperatures
-        self.temps = self.temps - 273.15  # Convert to degrees Celcius (time, lat, long)
-        self.u_wind = np.array(self.weather_data.variables['u10'])  # Extract u wind component
-        self.v_wind = np.array(self.weather_data.variables['v10'])  # Extract v wind component
+        # Extract temperatures
+        self.temps = np.array(self.weather_data.variables['t2m'])
+        # Convert to degrees Celcius (time, lat, long)
+        self.temps = self.temps - 273.15
+        # Extract u wind component
+        self.u_wind = np.array(self.weather_data.variables['u10'])
+        # Extract v wind component
+        self.v_wind = np.array(self.weather_data.variables['v10'])
         self.winds = np.add(np.square(self.u_wind), np.square(
             self.v_wind))  # Calculate the net wind speed
         # Calculate the net wind speed (time, lat, long)
@@ -50,12 +55,18 @@ class WeatherLookup:
         self.precip = np.array(self.weather_data.variables['tp'])
         self.precip = self.precip * 1000  # Convert m to mm (time, lat, long)
 
-        self.time_total = self.weather_data.variables['time'][:]  # Extract time values
-        self.latitude = self.weather_data.variables['lat'][:]  # Extract latitude values
-        self.longitude = self.weather_data.variables['lon'][:]  # Extract longitude values
-        self.time_length = len(self.time_total)  # Length of time dimension - number of timesteps
-        self.lat_length = len(self.latitude)  # Length of latitude dimension - n cells
-        self.lon_length = len(self.longitude)  # Length of longitude dimension - n cells
+        # Extract time values
+        self.time_total = self.weather_data.variables['time'][:]
+        # Extract latitude values
+        self.latitude = self.weather_data.variables['lat'][:]
+        # Extract longitude values
+        self.longitude = self.weather_data.variables['lon'][:]
+        # Length of time dimension - number of timesteps
+        self.time_length = len(self.time_total)
+        # Length of latitude dimension - n cells
+        self.lat_length = len(self.latitude)
+        # Length of longitude dimension - n cells
+        self.lon_length = len(self.longitude)
 
         self.weather_data.close()  # close the netCDF4 file
 
@@ -71,10 +82,47 @@ class WeatherLookup:
         DD = deployment day
         """
 
+        # build-in Weather envelopes
+        temp_env = [0, 0]
+        wind_speed_env = [0, 0]
+        precip_env = [0, 0]
+
+        # if user defined weather threshold
+        if self.parameters['methods'][
+                method_name]['min_temp']:
+            min_temp = self.parameters['methods'][
+                method_name]['min_temp']
+            max_temp = 100
+        # else use weather envelopes
+        else:
+            min_temp = temp_env[0]
+            max_temp = temp_env[1]
+
+        if self.parameters['methods'][
+                method_name]['max_wind']:
+            max_wind = self.parameters['methods'][
+                method_name]['max_wind']
+            min_wind = 0
+        else:
+            min_wind = wind_speed_env[0]
+            max_wind = wind_speed_env[1]
+
+        if self.parameters['methods'][
+                method_name]['max_precip']:
+            max_precip = self.parameters['methods'][
+                method_name]['max_precip']
+            min_precip = -10
+        else:
+            min_precip = precip_env[0]
+            max_precip = precip_env[1]
+
         # Initialize empty boolean arrays for threshold pass(1)/fail(0)
-        bool_temp = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
-        bool_wind = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
-        bool_precip = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
+        bool_temp = np.zeros(
+            (self.lon_length, self.lat_length, self.parameters['timesteps']))
+        bool_wind = np.zeros(
+            (self.lon_length, self.lat_length, self.parameters['timesteps']))
+        bool_precip = np.zeros(
+            (self.lon_length, self.lat_length, self.parameters['timesteps']))
 
         # For each day...
         for day in range(self.parameters['timesteps']):
@@ -83,18 +131,15 @@ class WeatherLookup:
             for lat in range(self.lat_length):
                 for lon in range(self.lon_length):
                     # If you exceed minimum temperature...
-                    if self.temps[day, lat, lon] >= self.parameters['methods'][
-                            method_name]['min_temp']:
+                    if min_temp <= self.temps[day, lat, lon] <= max_temp:
                         # Count one instrument day (instrument can be used)
                         bool_temp[lon, lat, day] = 1
                     # If you are below the maximum wind...
-                    if self.winds[day, lat, lon] <= self.parameters['methods'][
-                            method_name]['max_wind']:
+                    if min_wind <= self.temps[day, lat, lon] <= max_wind:
                         # Count one instrument day (instrument can be used)
                         bool_wind[lon, lat, day] = 1
                     # If you are below the precipitation threshold...
-                    if self.precip[day, lat, lon] <= self.parameters['methods'][
-                            method_name]['max_precip']:
+                    if min_precip <= self.temps[day, lat, lon] <= max_precip:
                         # Count one instrument day (instrument can be used)
                         bool_precip[lon, lat, day] = 1
 
