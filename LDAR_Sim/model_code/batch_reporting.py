@@ -509,7 +509,7 @@ class BatchReporting:
                 dict.update({'Mean Cost': round(df_temp.iloc[:, j].mean())})
                 dict.update({'St. Dev.': df_temp.iloc[:, j].std()})
                 dict.update({'Method': method_lists[i][j].replace('_cost', '')})
-                dict.update({'Total Cost': df_temp.iloc[:, j].sum('Program')})
+                dict.update({'Total Cost': df_temp.iloc[i][j].sum()})
                 rows_list.append(dict)
         df = pd.DataFrame(rows_list)
 
