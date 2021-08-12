@@ -90,7 +90,7 @@ if __name__ == '__main__':
         input_directory = root_dir / "inputs_template"
         output_directory = root_dir / "outputs"
         # Programs to compare; Position one should be the reference program (P_ref)
-        program_list = ['P_ref', 'P_base']
+        program_list = ['P_ref', 'P_aircraft']
 
         # -----------------------------Set up programs----------------------------------
         programs = []
