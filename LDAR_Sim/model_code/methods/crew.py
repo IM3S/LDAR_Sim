@@ -146,6 +146,6 @@ class BaseCrew:
         """
         # Get the type of sensor, and call the the detect emissions function for sensor
         sensor_mod = import_module(
-            'methods.sensors.{}'.format(self.config['sensor']))
+            'methods.sensors.{}'.format(self.config['sensor']['type']))
         detect_emis_sensor = getattr(sensor_mod, 'detect_emissions')
         return detect_emis_sensor(self, *args)

@@ -73,8 +73,8 @@ class WeatherLookup:
         """
 
         # Initialize empty boolean arrays for threshold pass(1)/fail(0)
-        bool_temp = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
-        bool_wind = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
+        bool_temps = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
+        bool_winds = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
         bool_precip = np.zeros((self.lon_length, self.lat_length, self.parameters['timesteps']))
 
         # For each day...
@@ -84,20 +84,20 @@ class WeatherLookup:
             for lat in range(self.lat_length):
                 for lon in range(self.lon_length):
                     # If you exceed minimum temperature...
-                    if self.temps[day, lat, lon] >= config['min_temp']:
+                    if self.temps[day, lat, lon] >= config['weather_limits']['temp'][0]:
                         # Count one instrument day (instrument can be used)
-                        bool_temp[lon, lat, day] = 1
+                        bool_temps[lon, lat, day] = 1
                     # If you are below the maximum wind...
-                    if self.winds[day, lat, lon] <= config['max_wind']:
+                    if self.winds[day, lat, lon] <= config['weather_limits']['wind'][1]:
                         # Count one instrument day (instrument can be used)
-                        bool_wind[lon, lat, day] = 1
+                        bool_winds[lon, lat, day] = 1
                     # If you are below the precipitation threshold...
-                    if self.precip[day, lat, lon] <= config['max_precip']:
+                    if self.precip[day, lat, lon] <= config['weather_limits']['precip'][1]:
                         # Count one instrument day (instrument can be used)
                         bool_precip[lon, lat, day] = 1
 
         # Check to see if all criteria (temp, wind, and precip) were met...
-        bool_sum = np.add(bool_temp, np.add(bool_wind, bool_precip))
+        bool_sum = np.add(bool_temps, np.add(bool_winds, bool_precip))
         DD_all = bool_sum == 3
 
         return DD_all

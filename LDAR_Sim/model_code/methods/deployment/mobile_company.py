@@ -114,7 +114,7 @@ class Schedule(BaseSchedCompany):
         survey_frequency = '{}_RS'.format(name)
         meth = self.parameters['methods']
 
-        if self.config['is_follow_up']:
+        if self.config['follow_up']['is_follow_up']:
             filt_sites = filter(
                 lambda s, : (
                     self.state['t'].current_date - s['date_flagged']).days

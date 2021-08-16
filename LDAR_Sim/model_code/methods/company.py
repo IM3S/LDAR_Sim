@@ -65,11 +65,11 @@ class BaseCompany:
             self.timeseries['{}_flags_redund2'.format(self.name)] = np.zeros(n_ts)
             self.timeseries['{}_flags_redund3'.format(self.name)] = np.zeros(n_ts)
             # Assign the correct follow-up threshold
-            if self.config['follow_up_thresh'][1] == "absolute":
-                self.config['follow_up_thresh'] = self.config['follow_up_thresh'][0]
-            elif self.config['follow_up_thresh'][1] == "proportion":
+            if self.config['follow_up']['threshold_type'] == "absolute":
+                self.config['follow_up_thresh'] = self.config['follow_up']['threshold']
+            elif self.config['follow_up']['threshold_type'] == "proportion":
                 self.config['follow_up_thresh'] = get_prop_rate(
-                    self.config['follow_up_thresh'][0],
+                    self.config['follow_up']['threshold'],
                     self.state['empirical_leaks'])
             else:
                 print(
@@ -105,7 +105,7 @@ class BaseCompany:
         # NOTE: crew checks weather conditions at start of the day
         if self.schedule.in_deployment_period(self.state['t'].current_date):
             self.candidate_flags = []
-            if self.config['is_follow_up']:
+            if self.config['follow_up']['is_follow_up']:
                 site_pool = self.state['flags']
             else:
                 site_pool = self.state['sites']
@@ -155,7 +155,7 @@ class BaseCompany:
                 site[sites_this_year] = 0
 
         # Update followup specific parameters
-        if self.config['is_follow_up']:
+        if self.config['follow_up']['is_follow_up']:
             self.state['flags'] = [flag for flag in self.state['sites']
                                    if flag['currently_flagged']]
         return
@@ -167,7 +167,7 @@ class BaseCompany:
         """
         # First, figure out how many sites you're going to choose
         n_sites_to_flag = len(self.candidate_flags) * \
-            self.config['follow_up_ratio']
+            self.config['follow_up']['ratio']
         n_sites_to_flag = int(math.ceil(n_sites_to_flag))
 
         sites_to_flag = []

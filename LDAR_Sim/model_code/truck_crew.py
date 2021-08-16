@@ -72,9 +72,7 @@ class truck_crew:
 
         # Start day with random "offsite time" required for driving to first site
         self.state['t'].current_date += timedelta(
-            minutes=int(
-                self.state['offsite_times']
-                [np.random.randint(0, len(self.state['offsite_times']))]))
+            minutes=int(np.random.choice(self.config['t_bw_sites'])))
 
         while self.state['t'].current_date.hour < int(end_hour):
             facility_ID, found_site, site = self.choose_site()
@@ -161,14 +159,14 @@ class truck_crew:
         # Test detection module
         site_measured_rate = 0
         if self.config["measurement_scale"] == "site":
-            if site_true_rate > (self.config['MDL']):
+            if site_true_rate > (self.config['sensor']['MDL']):
                 # If source is above follow-up threshold, calculate measured rate using QE
-                site_measured_rate = measured_rate(site_true_rate, self.config['QE'])
+                site_measured_rate = measured_rate(site_true_rate, self.config['sensor']['QE'])
 
         if self.config["measurement_scale"] == "equipment":
             for rate in equipment_rates:
-                if rate > (self.config['MDL']):
-                    equip_measured_rate = measured_rate(rate, self.config['QE'])
+                if rate > (self.config['sensor']['MDL']):
+                    equip_measured_rate = measured_rate(rate, self.config['sensor']['QE'])
                     site_measured_rate += equip_measured_rate
 
         # If source is above follow-up threshold
@@ -189,9 +187,7 @@ class truck_crew:
 
         self.state['t'].current_date += timedelta(minutes=int(site['truck_time']))
         self.state['t'].current_date += timedelta(
-            minutes=int(
-                self.state['offsite_times']
-                [np.random.randint(0, len(self.state['offsite_times']))]))
+            minutes=int(np.random.choice(self.config['t_bw_sites'])))
         self.timeseries['truck_sites_visited'][self.state['t'].current_timestep] += 1
 
         return

@@ -5,7 +5,7 @@ import math
 def detect_emissions(self, site, leaks_present, equipment_rates, site_true_rate, venting):
     for leak in leaks_present:
         k = np.random.normal(4.9, 0.3)
-        x0 = np.random.normal(self.config['MDL'][0], self.config['MDL'][1])
+        x0 = np.random.normal(self.config['sensor']['MDL'][0], self.config['sensor']['MDL'][1])
         x0 = math.log10(x0 * 3600)  # Convert from g/s to g/h and take log
 
         if leak['rate'] == 0:

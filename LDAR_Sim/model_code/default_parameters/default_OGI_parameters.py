@@ -18,32 +18,41 @@
 # along with this program.  If not, see <https://opensource.org/licenses/MIT>.
 #
 # ------------------------------------------------------------------------------
-
 default_OGI_parameters = {
     'version': '2.0',
     'parameter_level': 'method',
     'label': 'OGI',
-    'module': 'dummy',
+    'module': 'dummy',  # TEMPORARY for backwards compatibility
     'deployment_type': 'mobile',
     'measurement_scale': "component",
-    'sensor': 'OGI_camera',
-    'is_follow_up': False,
+    'sensor': {
+        'type': 'OGI_camera',
+        'MDL': [0.01275, 2.78e-6],
+        'QE': 0,
+    },
+    'weather_limits': {
+        'temp': [-20.0, 40.0],
+        'wind': [0.0, 10.0],
+        'precip': [0.0, 1.0],
+    },
+    'follow_up': {
+        'is_follow_up': False,
+        'threshold_type': "absolute",
+        'threshold': 0.0,
+        'ratio': 1.0,
+    },
+    't_bw_sites': 'time_offsite_ground.csv',
     'n_crews': 1,
-    'min_temp': -20,
-    'max_wind': 10,
-    'max_precip': 0.1,
     'max_workday': 8,
     'cost_per_day': 2500,
     'reporting_delay': 2,
-    't_bw_sites': 'time_offsite_ground.csv',
-    'MDL': [0.01275, 2.78e-6],
     'consider_daylight': False,
     'scheduling': {
         'route_planning': False,
-        'home_bases': 'homebases.csv',
-        'speed_list': [80, 90, 100],
+        'home_bases_files': 'Airport_AB_Coordinates.csv',
+        'speed_list': [],
         'LDAR_crew_init_location': [-114.062019, 51.044270],
         'deployment_years': [],
         'deployment_months': [],
-    },
+    }
 }

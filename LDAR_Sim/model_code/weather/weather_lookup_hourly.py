@@ -81,7 +81,8 @@ class WeatherLookup:
         self.weather_data.close()  # close the netCDF4 file
         return
 
-    def deployment_days(self, method_name, start_date, start_work_hour=0, consider_weather=True):
+    def deployment_days(self, config, method_name, start_date,
+                        start_work_hour=0, consider_weather=True):
         """Generate a matrix with dimensions [num_lngs, num_lats, num_days]
         With each element being a boolean representing if the weather is
         suitable for surveying  (1 being ok).
@@ -97,9 +98,9 @@ class WeatherLookup:
         """
 
         # Initialize empty boolean arrays for threshold pass(1)/fail(0)
-        bool_temp = np.zeros((len(self.longitude), len(
+        bool_temps = np.zeros((len(self.longitude), len(
             self.latitude), self.parameters['timesteps']))
-        bool_wind = np.zeros((len(self.longitude), len(
+        bool_winds = np.zeros((len(self.longitude), len(
             self.latitude), self.parameters['timesteps']))
         bool_precip = np.zeros((len(self.longitude), len(
             self.latitude), self.parameters['timesteps']))
@@ -124,24 +125,27 @@ class WeatherLookup:
                             ['winds', 'precip', 'temps'],
                             nday_dt, number_of_hours=max_day,
                             lat_idx=lat, lon_idx=lon)
-                        if np.average(hourly_weather['temps']) >= self.config['min_temp']:
+                        if np.average(hourly_weather['temps']) \
+                                >= config['weather_limits']['temp'][0]:
                             # Count one instrument day (instrument can be used)
-                            bool_temp[lon, lat, day] = 1
+                            bool_temps[lon, lat, day] = 1
                         # If you are below the maximum wind...
-                        if np.average(hourly_weather['winds']) <= self.config['max_wind']:
+                        if np.average(hourly_weather['winds']) \
+                                <= config['weather_limits']['wind'][1]:
                             # Count one instrument day (instrument can be used)
-                            bool_wind[lon, lat, day] = 1
+                            bool_winds[lon, lat, day] = 1
                         # If you are below the precipitation threshold...
-                        if np.average(hourly_weather['precip']) <= self.config['max_precip']:
+                        if np.average(hourly_weather['precip']) \
+                                <= config['weather_limits']['precip'][1]:
                             # Count one instrument day (instrument can be used)
                             bool_precip[lon, lat, day] = 1
                     else:
-                        bool_temp[lon, lat, day] = 1
-                        bool_wind[lon, lat, day] = 1
+                        bool_temps[lon, lat, day] = 1
+                        bool_winds[lon, lat, day] = 1
                         bool_precip[lon, lat, day] = 1
 
                         # Check to see if all criteria (temp, wind, and precip) were met...
-        bool_sum = np.add(bool_temp, np.add(bool_wind, bool_precip))
+        bool_sum = np.add(bool_temps, np.add(bool_winds, bool_precip))
         DD_all = bool_sum == 3
         return DD_all
 

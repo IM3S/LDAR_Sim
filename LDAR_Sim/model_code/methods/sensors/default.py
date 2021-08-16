@@ -7,18 +7,18 @@ def detect_emissions(self, site, leaks_present, equipment_rates, site_true_rate,
     site_measured_rate = 0
 
     if self.config["measurement_scale"] == "site":
-        if site_true_rate > (self.config['MDL']):
+        if site_true_rate > (self.config['sensor']['MDL']):
             # If source is above follow-up threshold, calculate measured rate using QE
-            site_measured_rate = measured_rate(site_true_rate, self.config['QE'])
+            site_measured_rate = measured_rate(site_true_rate, self.config['sensor']['QE'])
     elif self.config["measurement_scale"] == "equipment":
         for rate in equipment_rates:
-            if rate > (self.config['MDL']):
-                equip_measured_rate = measured_rate(rate, self.config['QE'])
+            if rate > (self.config['sensor']['MDL']):
+                equip_measured_rate = measured_rate(rate, self.config['sensor']['QE'])
                 site_measured_rate += equip_measured_rate
     elif self.config["measurement_scale"] == "leak":
         # If measurement scale is a leak, all leaks will be tagged
         for leak in leaks_present:
-            if leak['rate'] > (self.config['MDL']):
+            if leak['rate'] > (self.config['sensor']['MDL']):
                 if leak['tagged']:
                     self.timeseries[self.config['label'] +
                                     '_redund_tags'][self.state['t'].current_timestep] += 1
@@ -29,7 +29,7 @@ def detect_emissions(self, site, leaks_present, equipment_rates, site_true_rate,
                     leak['tagged_by_company'] = self.config['label']
                     leak['tagged_by_crew'] = self.crewstate['id']
                     self.state['tags'].append(leak)
-                    site_measured_rate += measured_rate(leak['rate'], self.config['QE'])
+                    site_measured_rate += measured_rate(leak['rate'], self.config['sensor']['QE'])
             else:
                 site[self.config['label'] + '_missed_leaks'] += 1
 
