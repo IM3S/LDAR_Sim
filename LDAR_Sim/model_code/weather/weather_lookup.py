@@ -35,13 +35,18 @@ class WeatherLookup:
         # Read in weather data as NetCDF file(s)
 
         self.weather_data = Dataset(
-            self.parameters['working_directory'] + self.parameters['weather_file'],
+            self.parameters['working_directory'] +
+            self.parameters['weather_file'],
             'r')  # Load wind and temp data
         self.weather_data.set_auto_mask(False)  # Load wind and temp data
-        self.temps = np.array(self.weather_data.variables['t2m'])  # Extract temperatures
-        self.temps = self.temps - 273.15  # Convert to degrees Celcius (time, lat, long)
-        self.u_wind = np.array(self.weather_data.variables['u10'])  # Extract u wind component
-        self.v_wind = np.array(self.weather_data.variables['v10'])  # Extract v wind component
+        # Extract temperatures
+        self.temps = np.array(self.weather_data.variables['t2m'])
+        # Convert to degrees Celcius (time, lat, long)
+        self.temps = self.temps - 273.15
+        # Extract u wind component
+        self.u_wind = np.array(self.weather_data.variables['u10'])
+        # Extract v wind component
+        self.v_wind = np.array(self.weather_data.variables['v10'])
         self.winds = np.add(np.square(self.u_wind), np.square(
             self.v_wind))  # Calculate the net wind speed
         # Calculate the net wind speed (time, lat, long)
@@ -50,12 +55,18 @@ class WeatherLookup:
         self.precip = np.array(self.weather_data.variables['tp'])
         self.precip = self.precip * 1000  # Convert m to mm (time, lat, long)
 
-        self.time_total = self.weather_data.variables['time'][:]  # Extract time values
-        self.latitude = self.weather_data.variables['lat'][:]  # Extract latitude values
-        self.longitude = self.weather_data.variables['lon'][:]  # Extract longitude values
-        self.time_length = len(self.time_total)  # Length of time dimension - number of timesteps
-        self.lat_length = len(self.latitude)  # Length of latitude dimension - n cells
-        self.lon_length = len(self.longitude)  # Length of longitude dimension - n cells
+        # Extract time values
+        self.time_total = self.weather_data.variables['time'][:]
+        # Extract latitude values
+        self.latitude = self.weather_data.variables['lat'][:]
+        # Extract longitude values
+        self.longitude = self.weather_data.variables['lon'][:]
+        # Length of time dimension - number of timesteps
+        self.time_length = len(self.time_total)
+        # Length of latitude dimension - n cells
+        self.lat_length = len(self.latitude)
+        # Length of longitude dimension - n cells
+        self.lon_length = len(self.longitude)
 
         self.weather_data.close()  # close the netCDF4 file
 
@@ -72,38 +83,27 @@ class WeatherLookup:
         """
 
         # build-in Weather envelopes
-        temp_env = [0, 0]
-        wind_speed_env = [0, 0]
-        precip_env = [0, 0]
+        temp_env = [-40, 40]
+        wind_speed_env = [0, 15]
+        precip_env = [0, 10]
 
-        # if user defined weather threshold
-        if self.parameters['methods'][
-                method_name]['min_temp']:
-            min_temp = self.parameters['methods'][
-                method_name]['min_temp']
-            max_temp = 100
-        # else use weather envelopes
-        else:
+        weather = self.parameters['methods'][method_name]
+        min_temp = weather['min_temp']
+        max_wind = weather['max_wind']
+        max_precip = weather['max_precip']
+
+        # if user not defined weather threshold, use weather envelopes
+        if not min_temp:
             min_temp = temp_env[0]
-            max_temp = temp_env[1]
+        max_temp = temp_env[1]
 
-        if self.parameters['methods'][
-                method_name]['max_wind']:
-            max_wind = self.parameters['methods'][
-                method_name]['max_wind']
-            min_wind = 0
-        else:
-            min_wind = wind_speed_env[0]
+        if not max_wind:
             max_wind = wind_speed_env[1]
+        min_wind = wind_speed_env[0]
 
-        if self.parameters['methods'][
-                method_name]['max_precip']:
-            max_precip = self.parameters['methods'][
-                method_name]['max_precip']
-            min_precip = -10
-        else:
-            min_precip = precip_env[0]
+        if not max_precip:
             max_precip = precip_env[1]
+        min_precip = precip_env[0]
 
         # Initialize empty boolean arrays for threshold pass(1)/fail(0)
         bool_temp = np.zeros(
