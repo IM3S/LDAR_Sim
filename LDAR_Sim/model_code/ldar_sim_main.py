@@ -32,6 +32,7 @@ from batch_reporting import BatchReporting
 from pathlib import Path
 from input_manager import InputManager
 from generic_functions import check_ERA5_file
+from economics.cost_mitigation import cost_mitigation
 
 if __name__ == '__main__':
     # Get route directory , which is parent folder of ldar_sim_main file
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         n_simulations = simulation_parameters['n_simulations']
         spin_up = simulation_parameters['spin_up']
         ref_program = simulation_parameters['reference_program']
+        base_program = simulation_parameters['base_program']
         write_data = simulation_parameters['write_data']
         start_date = simulation_parameters['start_date']
 
@@ -90,7 +92,7 @@ if __name__ == '__main__':
         input_directory = root_dir / "inputs_template"
         output_directory = root_dir / "outputs"
         # Programs to compare; Position one should be the reference program (P_ref)
-        program_list = ['P_ref', 'P_aircraft']
+        program_list = ['P_ref', 'P_base', 'P_aircraft']
 
         # -----------------------------Set up programs----------------------------------
         programs = []
@@ -107,6 +109,7 @@ if __name__ == '__main__':
         n_simulations = programs[0]['n_simulations']
         spin_up = programs[0]['spin_up']
         ref_program = program_list[0]
+        base_program = program_list[1]
         write_data = programs[0]['write_data']
         start_date = programs[0]['start_date']
 
@@ -143,6 +146,7 @@ if __name__ == '__main__':
     # Do batch reporting
     if write_data:
         # Create a data object...
+        _ = cost_mitigation(res, ref_program, base_program)
         reporting_data = BatchReporting(
             output_directory, start_date,
             spin_up, ref_program)
