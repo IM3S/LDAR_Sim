@@ -31,7 +31,7 @@ import plotnine as pn
 
 class BatchReporting:
 
-    def __init__(self, output_directory, start_date, spin_up, ref_program):
+    def __init__(self, output_directory, start_date, spin_up, ref_program, base_program):
         """
         Prepare output csv files to glean summary statistics and plotting data.
         """
@@ -39,6 +39,7 @@ class BatchReporting:
         self.start_date = start_date
         self.spin_up = spin_up
         self.ref_program = ref_program
+        self.base_program = base_program
 
         start_date = datetime(*start_date) + timedelta(days=self.spin_up)
         start_date = start_date.strftime("%m-%d-%Y")
