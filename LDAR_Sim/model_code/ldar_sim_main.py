@@ -149,7 +149,7 @@ if __name__ == '__main__':
         _ = cost_mitigation(res, ref_program, base_program)
         reporting_data = BatchReporting(
             output_directory, start_date,
-            spin_up, ref_program)
+            spin_up, ref_program, base_program)
         if n_simulations > 1:
             reporting_data.program_report()
             if len(programs) > 1:
