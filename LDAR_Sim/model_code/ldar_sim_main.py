@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # Do batch reporting
     if write_data:
         # Create a data object...
-        _ = cost_mitigation(res, ref_program, base_program)
+        cost_mitigation = cost_mitigation(res, ref_program, base_program)
         reporting_data = BatchReporting(
             output_directory, start_date,
             spin_up, ref_program, base_program)
