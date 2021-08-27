@@ -64,16 +64,26 @@ class BaseCompany:
             self.timeseries['{}_flags_redund1'.format(self.name)] = np.zeros(n_ts)
             self.timeseries['{}_flags_redund2'.format(self.name)] = np.zeros(n_ts)
             self.timeseries['{}_flags_redund3'.format(self.name)] = np.zeros(n_ts)
-            # Assign the correct follow-up threshold
-            if self.config['follow_up_thresh'][1] == "absolute":
-                self.config['follow_up_thresh'] = self.config['follow_up_thresh'][0]
-            elif self.config['follow_up_thresh'][1] == "proportion":
-                self.config['follow_up_thresh'] = get_prop_rate(
-                    self.config['follow_up_thresh'][0],
+
+            # Assign the correct follow-up threshold and instant follow-up threshold
+            if self.config['follow_up']['threshold_type'] == "absolute":
+                self.config['follow_up']['threshold'] = self.config['follow_up']['threshold']
+            elif self.config['follow_up']['threshold_type'] == "proportion":
+                self.config['follow_up']['threshold'] = get_prop_rate(
+                    self.config['follow_up']['threshold'],
                     self.state['empirical_leaks'])
             else:
                 print(
                     'Follow-up thresh type not recognized. Must be "absolute" or "proportion".')
+
+            if self.config['follow_up']['instant_threshold_type'] == "absolute":
+                self.config['follow_up']['instant_threshold'] = self.config['follow_up']['instant_threshold']
+            elif self.config['follow_up']['instant_threshold_type'] == "proportion":
+                self.config['follow_up']['instant_threshold'] = get_prop_rate(
+                    self.config['follow_up']['instant_threshold'],
+                    self.state['empirical_leaks'])
+            else:
+                print('Instnat follow-up thresh type not recognized.')
 
         # ---Init 2D matrices to store deployment day (DD) counts and MCBs ---
         self.DD_map = np.zeros(
