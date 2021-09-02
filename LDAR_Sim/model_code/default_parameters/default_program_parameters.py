@@ -52,4 +52,8 @@ default_program_parameters = {
     'print_from_simulations': True,
     'operator_strength': 0,
     'verification_cost': 25,
+    'economics': {'sale_price_natgas': 3,
+                  'carbon_price_tonnesCO2e': 40,
+                  'social_cost_CH4_tonnes': 1406,
+                  'GWP_CH4': 28}
 }
