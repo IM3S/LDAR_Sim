@@ -92,7 +92,7 @@ if __name__ == '__main__':
         input_directory = root_dir / "inputs_template"
         output_directory = root_dir / "outputs"
         # Programs to compare; Position one should be the reference program (P_ref)
-        program_list = ['P_ref', 'P_base', 'P_aircraft']
+        program_list = []
 
         # -----------------------------Set up programs----------------------------------
         programs = []
@@ -139,6 +139,7 @@ if __name__ == '__main__':
                   'opening_message': opening_message,
                   'print_from_simulation': print_from_simulations}])
 
+    # ldar_sim_run(simulations[1][0])
     # Perform simulations in parallel
     with mp.Pool(processes=n_processes) as p:
         res = p.starmap(ldar_sim_run, simulations)
@@ -146,7 +147,7 @@ if __name__ == '__main__':
     # Do batch reporting
     if write_data:
         # Create a data object...
-        cost_mitigation = cost_mitigation(res, ref_program, base_program)
+        cost_mitigation = cost_mitigation(res, ref_program, base_program, output_directory)
         reporting_data = BatchReporting(
             output_directory, start_date,
             spin_up, ref_program, base_program)
