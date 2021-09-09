@@ -55,5 +55,12 @@ default_program_parameters = {
     'economics': {'sale_price_natgas': 3,
                   'carbon_price_tonnesCO2e': 40,
                   'social_cost_CH4_tonnes': 1406,
+                  'cost_CCUS': 20,
+                  'cost_low_bleed_pneu_tCO2e': 875,
                   'GWP_CH4': 28}
 }
+
+# Cost for CCUS pure stream acquired from source below.
+# https://www.iea.org/commentaries/is-carbon-capture-too-expensive
+# See Munnings & Krupnick, 2017 RFF Report for Cost Low Bleed Devices,
+# converted to $/tonne CO2e before input.
