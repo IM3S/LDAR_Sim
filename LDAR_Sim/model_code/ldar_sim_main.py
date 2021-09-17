@@ -38,6 +38,8 @@ from argparse import RawTextHelpFormatter
 
 
 if __name__ == '__main__':
+    mp.freeze_support()
+
     # Get route directory , which is parent folder of ldar_sim_main file
     # Set current working directory directory to root directory
     root_dir = Path(os.path.dirname(os.path.realpath(__file__))).parent
