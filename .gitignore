@@ -8,5 +8,9 @@
 **/outputs/
 *.nc
 *.p
+**/dist/
+**/build/
+**/extra_data/
+
 # Include
 !ERA5_2017_2020_AB.nc
