@@ -333,7 +333,7 @@ If you are developing for LDAR-Sim, please adhere to the following rules:
 
 **Default input:** "./inputs_template"
 
-**Description:** Specify location containing input files, ie infrastructure and weather. Can be an absolute path, or relative path to the root folder.
+**Description:** Specify location containing input files, i.e., infrastructure and weather. Can be an absolute path, or relative path to the root folder.
 
 **Notes on acquisition:** N/A
 
@@ -373,7 +373,7 @@ If you are developing for LDAR-Sim, please adhere to the following rules:
 
 **Notes on acquisition:** No data acquisition required.
 
-**Notes of caution:** Using more simulations leads to better-constrained results but requires greater run time. For high-consequence scenarios that are meant to inform decision-making, we recommend using 10+ simulations for each scenario modeled.A minimum of two simulations is required to compare a set of different LDAR programs.
+**Notes of caution:** Using more simulations leads to better-constrained results but requires greater run time. For high-consequence scenarios that are meant to inform decision-making, we recommend using 10+ simulations for each scenario modeled. A minimum of two simulations is required to compare a set of different LDAR programs.
 
 ## print\_from\_simulations
 
@@ -486,7 +486,7 @@ method_labels:
 
 **Data type:** Character string that specifies the name of the environmental analysis NetCDF4 data file.
 
-**Default input:** &quot;ERA5_2017_2020_AB.nc&quot; (hourly weather file in alberta)
+**Default input:** &quot;ERA5_2017_2020_AB.nc&quot; (hourly weather file in Alberta)
 
 **Description:** Specifies the name of the ERA5 NetCDF4 file that contains all weather data to be used in the analysis. Generally, at a minimum, OGI requires wind, temperature, and precipitation data. LDAR-Sim reads in temperature data in degrees Celsius at 2 meters above ground, wind in meters per second at 10 meters above ground, and total precipitation in millimeters accumulated per hour. Other weather variables are freely available for download.
 
@@ -577,7 +577,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Notes on acquisition:** Survey frequencies can be based on regulatory requirements, company policies, or can be fabricated by the modeler to explore different scenarios.
 
-**Notes of caution:** Note that just because a number of surveys is prescribed, it does not mean that this number of surveys will necessarily be performed. For example, if labour limitations exist (i.e., not enough crews are available to inspect the number of facilities in the program) or inf environmental conditions are unsuitable (i.e., a particular facility is in a cloudy location that cannot be accessed by satellite), the performed number of surveys may be less than the prescribed number. This variable is not required for continuous measurement methods.
+**Notes of caution:** Note that just because a number of surveys is prescribed, it does not mean that this number of surveys will necessarily be performed. For example, if labour limitations exist (i.e., not enough crews are available to inspect the number of facilities in the program) or if environmental conditions are unsuitable (i.e., a particular facility is in a cloudy location that cannot be accessed by satellite), the performed number of surveys may be less than the prescribed number. This variable is not required for continuous measurement methods.
 
 ### \*\*\*\_time
 
@@ -601,7 +601,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Notes on acquisition:** Often established by the regulator.
 
-**Notes of caution:** As the number of required surveys becomes more evenly spaced through the year, emissions get lower. As surveys become more clustered, emission rise (because leaks go longer without repair). In general, the minimum interval should attempt to evenly space surveys through the year, but should still be representative of what crews are likely to do. The minimum interval can approximate the number of days in a year divided by the survey frequency (so for two surveys, an interval of ~180 day should evenly space the surveys. However, keep in mind that the crews may take several days or weeks to complete surveys, so if not enough time remains in the year, facilities may be missed and end up out of compliance.
+**Notes of caution:** As the number of required surveys becomes more evenly spaced through the year, emissions get lower. As surveys become more clustered, emission rise (because leaks go longer without repair). In general, the minimum interval should attempt to evenly space surveys through the year, but should still be representative of what crews are likely to do. The minimum interval can approximate the number of days in a year divided by the survey frequency (so for two surveys, an interval of ~180 days should evenly space the surveys). However, keep in mind that the crews may take several days or weeks to complete surveys, so if not enough time remains in the year, facilities may be missed and end up out of compliance.
 
 ### fixed\_sensors
 
@@ -669,7 +669,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Default input:** [False, 0]
 
-**Description:** Alist of inputs to sample from infrastructure\_file, if desired. This functionality would generally be used to run a series of rapid simulations when a large number of sites are included in the program. The first element in the list is a Boolean True/False to trigger whether or not to take samples. The second element indicates the number of samples to acquire.
+**Description:** A list of inputs to sample from infrastructure\_file, if desired. This functionality would generally be used to run a series of rapid simulations when a large number of sites are included in the program. The first element in the list is a Boolean True/False to trigger whether or not to take samples. The second element indicates the number of samples to acquire.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -720,7 +720,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Description:** A numerical scalar ranging from 0 to 1 that increases the relative probability that operators will detect large leaks. Although it makes intuitive sense that an operator would be more likely to hear/smell/see a large leak and would be more likely to care about it for safety and economic reasons, there exists no empirical data to guide the operator detection curve.
 
-**Notes on acquisition:** As of January 2021 (time of writing), no data exists to help parameterize how likely operators are to find large vs. small leaks. Ultimately controlled release testing should be performed to understand typical probability of detection ranges for the human senses (AVO).
+**Notes on acquisition:** As of January 2021 (time of writing), no data exists to help parameterize how likely operators are to find large vs. small leaks. Ultimately, controlled release testing should be performed to understand typical probability of detection ranges for the human senses (AVO).
 
 **Notes of caution:** This is currently a made-up technique that is not grounded in empirical data. Another problem is that it simply adds to the probability of high leaks being detected, but does not lower the probability for small leaks.
 
@@ -750,7 +750,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Default input:** True
 
-**Description:**  A binary True/False to indicate whether weather the method is affected by weather. If true surveys/screening occurs regardless of weather for scheduled visits.
+**Description:**  A binary True/False to indicate whether the method is affected by weather. If true surveys/screening occurs regardless of weather for scheduled visits.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -764,9 +764,9 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Description:** Specifies the amount of time that passes between the tagging of a leak and the point at which it is repaired (i.e., it stops emitting and is removed from the tag pool). This value is specific to a program, not a method, because once a leak is tagged, it is the responsibility of the duty holder to resolve it.
 
-**Notes on acquisition:** Little public data exists to inform this value, though repair delays are often dictated by regulatory requirements. In reality, the repair delay is likely a bimodal distribution, which some leaks repaired immediately by inspectors while others may take weeks or months if parts must be ordered or if a facility shutdown is required.
+**Notes on acquisition:** Little public data exists to inform this value, though repair delays are often dictated by regulatory requirements. In reality, the repair delay is likely a bimodal distribution, with some leaks repaired immediately by inspectors while others may take weeks or months if parts must be ordered or if a facility shutdown is required.
 
-**Notes of caution:** Do not confuse with method-specific reporting delays. Reporting delays define the time between surveys and transfer of information to the next responsible party. For example, an OGI company may have a reporting delay of 2 days and the duty holder might have a repair delay of 14 days. In this case, the amount a leak would continue to emit for 16 days following detection.
+**Notes of caution:** Do not confuse with method-specific reporting delays. Reporting delays define the time between surveys and transfer of information to the next responsible party. For example, an OGI company may have a reporting delay of 2 days and the duty holder might have a repair delay of 14 days. In this case, a leak would continue to emit for 16 days following detection.
 
 ## repair\_cost
 
@@ -778,7 +778,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Notes on acquisition:** The duty holder should have data on cost of repairs.
 
-**Notes of caution:** Cost of repair is highly variable and not well characterized by a single value. For example, a percentage of leaks will have near-zero repair costs if it is just a matter of tightening a valve. Other repairs, especially if specialized equipment is involved, could be extremely expensive – especially if a shutdown is required and production decline, leading to indirect costs. Those with good data and an intimate understanding of LDAR-Sim may opt to reprogram the model to accept a distribution of repair costs associated with different kinds of repairs – this could greatly improve LDAR cost estimates.
+**Notes of caution:** Cost of repair is highly variable and not well characterized by a single value. For example, a percentage of leaks will have near-zero repair costs if it is just a matter of tightening a valve. Other repairs, especially if specialized equipment is involved, could be extremely expensive – especially if a shutdown is required and production declines, leading to indirect costs. Those with good data and an intimate understanding of LDAR-Sim may opt to reprogram the model to accept a distribution of repair costs associated with different kinds of repairs – this could greatly improve LDAR cost estimates.
 
 ## use_empirical_rates
 **Data type:** Boolean or string
@@ -797,7 +797,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Default input:** ['lognorm',-2.776, 1.462, "kilogram", "hour"]
 
-**Description:** An list describing the empirical leak function from which leak emission rates are drawn.
+**Description:** A list describing the empirical leak function from which leak emission rates are drawn.
 
 **Notes on acquisition:** 
 
@@ -809,7 +809,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Default input:** 0.0065
 
-**Description:** Anumeric scalar that denotes the leak production rate (LPR).New leaks are generated using a site-level empirical LPR that is independent of the number of leaks already present on site. LPR is the probability that a new leak will arise, each day, for each site. The LPR is an empirical representation of all conditions that lead to the occurrence of leaks, including facility age, management practices, predictive maintenance, and random chance. Currently, a single LPR is used for all facility types, production types, facility ages, and so on. In the future, as more LDAR data becomes available, LPRs could be calculated that are specific to each of these or other variables, or distributions of LPRs could be generated. For an extended discussion on LPR, see Fox et al. (2020).
+**Description:** A numeric scalar that denotes the leak production rate (LPR). New leaks are generated using a site-level empirical LPR that is independent of the number of leaks already present on site. LPR is the probability that a new leak will arise, each day, for each site. The LPR is an empirical representation of all conditions that lead to the occurrence of leaks, including facility age, management practices, predictive maintenance, and random chance. Currently, a single LPR is used for all facility types, production types, facility ages, and so on. In the future, as more LDAR data becomes available, LPRs could be calculated that are specific to each of these or other variables, or distributions of LPRs could be generated. For an extended discussion on LPR, see Fox et al. (2020).
 
 **Notes on acquisition:** While the &quot;true&quot; LPR is elusive, it can be estimated by dividing the number of leaks found during an LDAR survey at a facility by the number of days that have passed since the previous LDAR survey at the same facility. If this is done for a large number of survey intervals at a large number of facilities, one should eventually converge on a representative estimate. When LDAR-Sim is used, operator-specific LPR values should be estimated if sufficient data exist to do so.
 
@@ -858,7 +858,7 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Default input:** True
 
-**Description:** Abinary True/False to control whether output plots are generated for each individual run of a simulation. Automatically generating plots provide a broad range of insights into individual simulation runs that can be extremely useful for interpretation. When dozens, 100s, or 1000s or simulation runs are being performed in succession (i.e., for sensitivity analysis or when comparing multiple different programs), plots from individual runs may not be needed and this variable can be turned to False (in these cases, the target information is in the aggregate results, so individual runs can be ignored). Turning this variable to False will reduce the run time of each simulation by a few seconds, which can be significant if the required number of simulations is high.
+**Description:** A binary True/False to control whether output plots are generated for each individual run of a simulation. Automatically generating plots provides a broad range of insights into individual simulation runs that can be extremely useful for interpretation. When dozens, 100s, or 1000s of simulation runs are being performed in succession (i.e., for sensitivity analysis or when comparing multiple different programs), plots from individual runs may not be needed and this variable can be turned to False (in these cases, the target information is in the aggregate results, so individual runs can be ignored). Turning this variable to False will reduce the run time of each simulation by a few seconds, which can be significant if the required number of simulations is high.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -880,11 +880,11 @@ If using different weather files for different programs (e.g., when comparing di
 
 **Data type:** All six parameters within the economics dictionary are integers.
 
-**Default input:** Sale price of natural gas is $3/mcf, carbon price in $40 tonnes/CO2e, the social cost of CH4 ($27/mcf) is converted to $1406/tonneCH4 but is unused (for now), the cost of pure stream CCUS is $20/tonneCO2e, the cost of converting high bleed devices to low bleed devices ($6/mcf) is converted to $875/tonnesCO2e, and the GWP of CH4 is 28 times that of the equivalent amount of CO2 over 100 years.
+**Default input:** Sale price of natural gas is $3/mcf, carbon price in $40/tonne CO2e, the social cost of CH4 ($27/mcf) is converted to $1406/tonneCH4 but is unused (for now), the cost of pure stream CCUS is $20/tonne CO2e, the cost of converting high bleed devices to low bleed devices ($6/mcf) is converted to $875/tonnesCO2e, and the GWP of CH4 is 28 times that of the equivalent amount of CO2 over 100 years.
 
-**Description:** In the economics dictionary there are six different parameters that users can customize. The first is the sale price of natural gas which is used to calculate the potential value of gas sold when captured as part of an LDAR program. LDAR-Sim takes the difference in emissions from a baseline scenario and multiplies this by the price of natural gas. The current federal price on carbon in Canada of $40/tonneCO2e is input as a reference point to compare the cost to mitigation ratios of LDAR programs. The social cost of methane is input but unused (for now) because the conversion to tonnes/CO2e places this value out of range on the output plots. The cost of pure stream CCUS was taken from the International Energy Agency's (IEA) report here: https://www.iea.org/commentaries/is-carbon-capture-too-expensive. It offers another metric to compare the cost/mitigation ratios of LDAR programs to. The cost of converting high bleed devices to low bleed devices ($6/mcf) was taken from a Resources for the Future (RFF) by Munnings and Krupnick (2017) and converted to $/tonne CO2e before input. Similar to the carbon price and cost of CCUS, the cost of low bleed retrofits can be compared to LDAR program cost/mitigation ratios for context. Last, a GWP of 28 over a 100-year time period was chosen as a default input. The model uses this value to convert between CH4 and CO2e when required. This value can be changed to 84-86 over 20 years to explore the impact that GWP has on mitigation costs.
+**Description:** In the economics dictionary there are six different parameters that users can customize. The first is the sale price of natural gas which is used to calculate the potential value of gas sold when captured as part of an LDAR program. LDAR-Sim takes the difference in emissions from a baseline scenario and multiplies this by the price of natural gas. The current federal price on carbon in Canada of $40/tonne CO2e is input as a default metric to compare the cost to mitigation ratios of LDAR programs to. The social cost of methane is input but unused (for now) because the conversion to tonnes/CO2e places this value out of range on the output plots. The cost of pure stream CCUS was taken from the International Energy Agency's (IEA) report here: https://www.iea.org/commentaries/is-carbon-capture-too-expensive. It offers another metric to compare the cost/mitigation ratios of LDAR programs to. The cost of converting high bleed devices to low bleed devices ($6/mcf) was taken from a Resources for the Future (RFF) report by Munnings and Krupnick (2017) and converted to $/tonne CO2e before input. Similar to the carbon price and cost of CCUS, the cost of low bleed retrofits can be compared to LDAR program cost/mitigation ratios for context. Last, a GWP of 28 over a 100-year time period was chosen as a default input. The model uses this value to convert between CH4 and CO2e when required. This value can be changed to 84-86 over 20 years to explore the impact that GWP has on mitigation costs.
 
-**Notes on acquisition:** The default values for these parameters represent generic costs of mitigation options and a conservative average price for natural gas. Firms may have unique costs for carbon taxes based on the regulatory jurisdiction where their operations are located, CCUS, or low bleed retrofits that they want to input into the model. If not, default parameters can be used, or the IEA and RFF report from Munnings and Krupnick (2017) can be used to derive alternative values. Provinicial/State or Federal government websites should have carbon pricing scenarios available online.
+**Notes on acquisition:** The default values for these parameters represent generic costs of mitigation options and a conservative price for natural gas. Firms may have unique costs for carbon taxes based on the regulatory jurisdiction where their operations are located, CCUS, or low bleed retrofits that they want to input into the model. If not, default parameters can be used, or information from the IEA and RFF report from Munnings and Krupnick (2017) can be used to derive alternative values. Provinicial/State or Federal government websites should have carbon pricing scenarios available online.
 
 **Notes of caution:** The value used for the cost of low bleed retrofits from Munnings and Krupnick (2017) is based on a national marginal abatement cost curve for methane abatement technologies in the U.S. O&G sector. As a result, this cost may not be truly representative of the costs for low bleed retrofits at sites in the O&G sector under LDAR regulations. 
 
@@ -934,11 +934,11 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:**&quot;mobile&quot;
 
-**Description:** Methods are comprised of both a deployment type and a sensor type. the deployment type is a character string denoting the deployment type used in the method. For instance, 'mobile', 'stationary', or 'orbit'.
+**Description:** Methods are comprised of both a deployment type and a sensor type. The deployment type is a character string denoting the deployment type used in the method. For instance, 'mobile', 'stationary', or 'orbit'.
 
 **Notes on acquisition:** No data acquisition required.
 
-**Notes of caution:** These methods must have accompanying deployment files, i.e. *{deployment_type}_crew* and *{deployment_type}_company* in the *module-code.methods.deployment* folder. See *template_company*, and *template_crew* for more details.
+**Notes of caution:** These methods must have accompanying deployment files, i.e., *{deployment_type}_crew* and *{deployment_type}_company* in the *module-code.methods.deployment* folder. See *template_company*, and *template_crew* for more details.
 
 __*Temporary__: In moving from individual methods to base module with changable deployment/ sensors (V2 methods), new methods do not use this variable.
 
@@ -952,7 +952,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Notes on acquisition:** No data acquisition required.
 
-**Notes of caution:** These methods must have accompanying sensor files, i.e. *{sensor_type}* in the *methods.sensors* folder.
+**Notes of caution:** These methods must have accompanying sensor files, i.e., *{sensor_type}* in the *methods.sensors* folder.
 
 __*Temporary__: In moving from individual methods to base module with changable deployment/ sensors (V2 methods), new methods do not use this variable.
 
@@ -974,7 +974,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:** False
 
-**Description:**  A binary True/False to indicate whether the method is used to survey sites previously flagged by screening technologies. If true this method will only visit sites flagged
+**Description:**  A binary True/False to indicate whether the method is used to survey sites previously flagged by screening technologies. If true this method will only visit sites flagged.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -990,7 +990,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Notes on acquisition:** No data acquisition required.
 
-**Notes of caution:** Unless explicitly evaluating labour constraints, ensure that sufficient crews are available to perform LDAR according to the requirements set out in the infrastructure\_file. For example, if 2000 facilities require LDAR, and each takes an saverage of 300 minutes, ~10,000 work hours are required, or 3-4 crews working full time.
+**Notes of caution:** Unless explicitly evaluating labour constraints, ensure that sufficient crews are available to perform LDAR according to the requirements set out in the infrastructure\_file. For example, if 2000 facilities require LDAR, and each takes an average of 300 minutes, ~10,000 work hours are required, or 3-4 crews working full time.
 
 ## min_temp
 
@@ -1052,7 +1052,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Notes on acquisition:** Consult service provider.
 
-**Notes of caution:** Does not account of maintenance activities or the cost of replacing devices after at the end of their lifetime.
+**Notes of caution:** Does not account for maintenance activities or the cost of replacing devices after at the end of their lifetime.
 
 ### per\_day
 
@@ -1072,7 +1072,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:** 0
 
-**Description:** The  cost charged by the service provider (per crew per hour). The cost includes travel time.
+**Description:** The cost charged by the service provider (per crew per hour). The cost includes travel time.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -1084,7 +1084,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:** N/A
 
-**Description:** The  cost charged by the service provider (per crew per site). It is charged each time a crew is deployed at a site.
+**Description:** The cost charged by the service provider (per crew per site). It is charged each time a crew is deployed at a site.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -1096,11 +1096,11 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:** [1.0, &quot;proportion&quot;] or [0, &quot;absolute&quot;]
 
-**Description:** Alist of two parameters that define the follow-up threshold. Measured site-level emissions must be above the follow-up threshold before a site becomes a candidate for flagging. The character string in the second position of the list must read &quot;proportion&quot; or &quot;absolute&quot;. If absolute, the numeric value in the first position indicates the follow-up threshold in grams per second. If &quot;proportion&quot;, the numeric value in the first position is passed to a function that calculates emission rate that corresponds to a desired proportion of total emissions for a given leak size distribution. The function estimates the MDL needed to find the top X percent of sources for a given leak size distribution. For example, given a proportion of 0.01 and a leak-size distribution, this function will return an estimate of the follow-up threshold that will ensure that all leaks in the top 1% of leak sizes are found.
+**Description:** A list of two parameters that define the follow-up threshold. Measured site-level emissions must be above the follow-up threshold before a site becomes a candidate for flagging. The character string in the second position of the list must read &quot;proportion&quot; or &quot;absolute&quot;. If absolute, the numeric value in the first position indicates the follow-up threshold in grams per second. If &quot;proportion&quot;, the numeric value in the first position is passed to a function that calculates emission rate that corresponds to a desired proportion of total emissions for a given leak size distribution. The function estimates the MDL needed to find the top X percent of sources for a given leak size distribution. For example, given a proportion of 0.01 and a leak-size distribution, this function will return an estimate of the follow-up threshold that will ensure that all leaks in the top 1% of leak sizes are found.
 
 **Notes on acquisition:** No data acquisition required.
 
-**Notes of caution:** Follow-up thresholds are explored in detail in Fox et al., 2021. Choosing follow-up rules is complex and work practices should be developed following extensive analysis of different scenarios. It is important to understand how follow-up thresholds and follow-up ratios interact, especially if both are to be used in the same program. Note that follow-up thresholds are similar to minimum detection limits but that the former is checked against to the measured emission rate (which is a function of quantification error) while the latter is checked against the true emission rate.
+**Notes of caution:** Follow-up thresholds are explored in detail in Fox et al. 2021. Choosing follow-up rules is complex and work practices should be developed following extensive analysis of different scenarios. It is important to understand how follow-up thresholds and follow-up ratios interact, especially if both are to be used in the same program. Note that follow-up thresholds are similar to minimum detection limits but that the former is checked against the measured emission rate (which is a function of quantification error) while the latter is checked against the true emission rate.
 
 ## follow\_up\_ratio
 
@@ -1108,7 +1108,7 @@ __*Temporary__: In moving from individual methods to base module with changable 
 
 **Default input:** 1.0
 
-**Description:** Asingle value that defines the proportion of candidate flags to receive follow-up. For example, if the follow-up ratio is 0.5, the top 50% of candidate flags (ranked by measured emission rate) will receive follow-up. Candidate flags have already been checked against the minimum detection limit and the follow-up threshold. See Section 3.9 for more information.
+**Description:** A single value that defines the proportion of candidate flags to receive follow-up. For example, if the follow-up ratio is 0.5, the top 50% of candidate flags (ranked by measured emission rate) will receive follow-up. Candidate flags have already been checked against the minimum detection limit and the follow-up threshold. See Section 3.9 for more information.
 
 **Notes on acquisition:** No data acquisition required.
 
@@ -1177,7 +1177,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Default input:** 0
 
-**Description:** The standard deviation of a normal distribution with a mean of zero from which a quantification error multiplier is drawn each time an emission rate is estimated. For example, for a value of 2.2, ~35% of measured emission rates will fall within a factor of two of the true emission rate. For a value of 7.5, ~82% of measurements will fall within an order of magnitude of the true emission rate. When QE = 0, the measured emission rate equals the true emission rate. As QE increases, so does the average absolute difference between measured and true emission rates. See Fox et al 2021 for more information and Ravikumar et al. (2019) for empirical quantification error estimates.
+**Description:** The standard deviation of a normal distribution with a mean of zero from which a quantification error multiplier is drawn each time an emission rate is estimated. For example, for a value of 2.2, ~35% of measured emission rates will fall within a factor of two of the true emission rate. For a value of 7.5, ~82% of measurements will fall within an order of magnitude of the true emission rate. When QE = 0, the measured emission rate equals the true emission rate. As QE increases, so does the average absolute difference between measured and true emission rates. See Fox et al. (2021) for more information and Ravikumar et al. (2019) for empirical quantification error estimates.
 
 **Notes on acquisition:** We recommend extensive controlled release testing under a range of representative release rates, distances, and conditions to establish quantification error. Given the amount of work required to collect this information, we recommend using historical estimates.
 
@@ -1193,7 +1193,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Notes on acquisition:** Acquisition is automated using required lat and lon coordinates for each facility (see infrastructure\_file input) at each timestep.
 
-**Notes of caution:** In most cases, True and False will yield similar results. Use of daylight constraints should be considered for companies that do not wish to deploy crews in the dark for safety reasons, especially for locations at high latitudes during winter months (e.g., Northern Alberta). However, this functionality should not be used to determine whether sunlight is available for passive remote sensing methods or other technologies that require sunlight operate, as the sun has already set when civil twilight occurs (see obs.horizon). Solar flux will vary will topography and cloud cover (use ERA5 data).
+**Notes of caution:** In most cases, True and False will yield similar results. Use of daylight constraints should be considered for companies that do not wish to deploy crews in the dark for safety reasons, especially for locations at high latitudes during winter months (e.g., Northern Alberta). However, this functionality should not be used to determine whether sunlight is available for passive remote sensing methods or other technologies that require sunlight operate, as the sun has already set when civil twilight occurs (see obs.horizon). Solar flux will vary with topography and cloud cover (use ERA5 data).
 
 ### obs.horizon
 
@@ -1227,20 +1227,20 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Default input:** N/A
 
-**Description:** A binary True/False to activate the route planning. Route planning allows LDAR crews to choose the nearest facility and home bases to visit based on the shortest travelling cost. The travelling cost is travel time that is calculated using the Haversine distance metric and maximum speed limit of travelling. The maximum speed limit is sampeld from speed list. It also allows LDAR crew to depart from the home base (town or city, or airport) at the start of each day and return to the home base at the end of each day.This will be improved in the future, especially for OGI, drone, and trucks.  
+**Description:** A binary True/False to activate the route planning. Route planning allows LDAR crews to choose the nearest facility and home bases to visit based on the shortest travelling cost. The travelling cost is travel time that is calculated using the Haversine distance metric and maximum speed limit of travelling. The maximum speed limit is sampled from speed_list. It also allows LDAR crews to depart from the home base (town, city, or airport) at the start of each day and return to the home base at the end of each day. This will be improved in the future, especially for OGI, drone, and trucks.  
 
-**Notes on acquisition:** It requires user to also define input for home_bases_files, speed_list and, LDAR_crew_init_location. 
+**Notes on acquisition:** It requires the user to also define an input for home_bases_files, speed_list, and LDAR_crew_init_location. 
 
 **Notes of caution:** Only mobile methods can use this functionality.
 
 
 ### home\_bases\_files (mobile only)
 
-**Data type:** Character string that specifies the name of the csv file that contains all of the required data on the home bases that used for LDAR scheduling.
+**Data type:** Character string that specifies the name of the csv file that contains all of the required data on the home bases used for LDAR scheduling.
 
 **Default input:** N/A
 
-**Description:** At a bare minimum, the csv must contain the following columns: 'name', 'lat', 'lon', where 'name' indicates the name of home bases (e.g., Calgary), and 'lat' and 'lon' are coordinates of each home base. The home bases for aircraft method should be airports, and the home bases for rest mobile methods should be towns and cities. 
+**Description:** At a bare minimum, the csv must contain the following columns: 'name', 'lat', and 'lon', where 'name' indicates the name of home bases (e.g., Calgary), and 'lat' and 'lon' are the coordinates of each home base. The home bases for the aircraft method should be airports and the home bases for all other mobile methods should be towns and cities. 
 
 **Notes on acquisition:** It is only required if route_planning is activated.   
 
@@ -1252,7 +1252,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Default input:** [60.0,70.0,80.0,90.0] for OGI and truck methods, [200.0,210.0,220.0,230.0] for aircraft method. 
 
-**Description:** A list of speed limits that define the maximum travelling speed of technologies. A random speed is sampled from this list when calculating the travel time between two facilities or between the facility and home base. Can also be a list with a single value.
+**Description:** A list of speed limits that define the maximum travelling speed of technologies. A random speed is sampled from this list when calculating the travel time between two facilities or between the facility and a home base. This can also be a list with a single value.
 
 **Notes on acquisition:** It is only required if route_planning is activated.   
 
@@ -1266,7 +1266,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Description:** A list of coordinates [longitude, latitude] that define the initial location of the LDAR crew. It is only required if route_planning or geography is activated.      
 
-**Notes on acquisition:** It is only required if route_planning is activated. 
+**Notes on acquisition:** It is only required if route_planning or geography is activated. 
 
 **Notes of caution:** Only mobile methods can use this functionality.
 
@@ -1276,7 +1276,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Default input:** N/A
 
-**Description:** A list of years used for scheduling. Methods can only be deployed during these years. For example, [2017,2018] indictates methods can only be deployed in 2017 and 2018. If not defined, LDARSim aussmes methods can be depolyed every year. 
+**Description:** A list of years used for scheduling. Methods can only be deployed during these years. For example, [2017,2018] indictates methods can only be deployed in 2017 and 2018. If not defined, LDAR-Sim aussmes methods can be depolyed every year. 
 
 **Notes on acquisition:** N/A
 
@@ -1288,7 +1288,7 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 
 **Default input:** N/A
 
-**Description:** A list of months used for scheduling. Methods can only be deployed during these months. For example, [8,9] indictates methods can only be deployed in August and Septamber.If not defined, LDARSim aussmes methods can be depolyed every month. 
+**Description:** A list of months used for scheduling. Methods can only be deployed during these months. For example, [8,9] indictates methods can only be deployed in August and Septamber. If not defined, LDAR-Sim aussmes methods can be depolyed every month. 
 
 **Notes on acquisition:** N/A
 
@@ -1320,11 +1320,11 @@ where Q = the emission rate in grams of methane per hour and d is the distance o
 **Notes of caution:** Please be sure the satellite is inlcuded in the TLE file 
 
 ## satellite\_name (satellite only)
-**Data type:** Character string that specifies the name of satellite
+**Data type:** Character string that specifies the name of satellite.
 
 **Default input:** N/A
 
-**Description:** The name of satellite  
+**Description:** The name of satellite.
 
 **Notes on acquisition:** It is only required for satellite.  
 
@@ -1340,7 +1340,7 @@ The sensitivity of modeling results to inputs will vary on a case-by-case basis.
 
 In the same way, the confidence in the accuracy of input data can only be determined by the user who provides the data. For example, if provided an empirical leak-size distribution consisting of only 5 measurements, LDAR-Sim will run and generate results without generating warnings. It is the responsibility of the user to have sufficient experience to understand how LDAR-Sim processes different types of data so that they can confidently provide high quality inputs.
 
-In terms of data source, inputs can come from oil and gas companies, technology providers, or solution providers. Some parameters and inputs can also be sourced from peer reviewed literature or can be used simply as experimental levers to explore different scenarios within LDAR-Sim. The lists below provide a general overview of what stakeholders will _generally_ be responsible for different parameters and inputs. Excepts will always exist, and may vary according to the purpose of modeling, the jurisdiction, and the scope of the modeling exercise. In general, we strongly suggest deriving method performance metrics from single-blind controlled release testing experiments.
+In terms of data source, inputs can come from oil and gas companies, technology providers, or solution providers. Some parameters and inputs can also be sourced from peer reviewed literature or can be used simply as experimental levers to explore different scenarios within LDAR-Sim. The lists below provide a general overview of what stakeholders will _generally_ be responsible for different parameters and inputs. Exceptions will always exist, and may vary according to the purpose of modeling, the jurisdiction, and the scope of the modeling exercise. In general, we strongly suggest deriving method performance metrics from single-blind controlled release testing experiments.
 
 Duty Holder / Operator (historical LDAR data)
 
@@ -1360,7 +1360,7 @@ Duty Holder / Operator (organizational data)
 Technology / Solution Provider / Operator (if self-performing LDAR)
 
 - OGI – n\_crews, min\_temp\*, max\_wind\*, max\_precip\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\* , consider\_daylight
-- Screening Methods – n\_crews, [various weather and operational envelopes]\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\*, consider\_daylight, follow\_up\_thresh, follow\_up\_ratio, t\_lost\_per\_site, QE\*
+- Screening Methods – n\_crews, [various weather and operational envelopes]\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\*, consider\_daylight, follow\_up\_thresh,  follow\_up\_ratio, t\_lost\_per\_site, QE\*
 - Fixed sensor – same as screening methods &amp; up\_front\_cost , time to detection
 
 Modeling Expert
