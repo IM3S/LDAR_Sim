@@ -1348,7 +1348,7 @@ Duty Holder / Operator (organizational data)
 Technology / Solution Provider / Operator (if self-performing LDAR)
 
 - OGI – n\_crews, min\_temp\*, max\_wind\*, max\_precip\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\* , consider\_daylight
-- Screening Methods – n\_crews, [various weather and operational envelopes]\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\*, consider\_daylight, follow\_up\_thresh, follow\_up\_ratio, t\_lost\_per\_site, QE\*
+- Screening Methods – n\_crews, [various weather and operational envelopes]\*, min\_interval, max\_workday, cost\_per\_day\*, reporting\_delay, MDL\*, consider\_daylight, follow\_up\_thresh,  follow\_up\_ratio, t\_lost\_per\_site, QE\*
 - Fixed sensor – same as screening methods &amp; up\_front\_cost , time to detection
 
 Modeling Expert
