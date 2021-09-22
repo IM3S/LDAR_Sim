@@ -18,12 +18,12 @@
 # along with this program.  If not, see <https://opensource.org/licenses/MIT>.
 #
 # ------------------------------------------------------------------------------
-import warnings
 import plotnine as pn
+import warnings
 from mizani.formatters import date_format
 
 
-def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
+def make_plots(leak_df, time_df, site_df, sim_n, spin_up, output_directory):
     """
     This function makes a set of standard plots to output at end of simulation.
     """
@@ -31,9 +31,12 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
     warnings.filterwarnings('ignore')
     pn.theme_set(pn.theme_linedraw())
 
+    # Chop off spin-up year (only for plots, still exists in raw output)
+    time_df_adj = time_df.iloc[spin_up:, ]
+
     # Timeseries plots
     plot_time_1 = (
-        pn.ggplot(time_df, pn.aes('datetime', 'daily_emissions_kg')) +
+        pn.ggplot(time_df_adj, pn.aes('datetime', 'daily_emissions_kg')) +
         pn.geom_line(size=2) +
         pn.ggtitle('Daily emissions from all sites (kg)') +
         pn.ylab('') +
@@ -48,10 +51,10 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
     )
 
     plot_time_1.save(output_directory / 'plot_time_emissions_{}.png'.format(sim_n),
-                     width=10, height=3, dpi=300, verbose=False)
+                     width=10, height=3, dpi=300)
 
     plot_time_2 = (
-        pn.ggplot(time_df, pn.aes('datetime', 'active_leaks')) +
+        pn.ggplot(time_df_adj, pn.aes('datetime', 'active_leaks')) +
         pn.geom_line(size=2) +
         pn.ggtitle('Number of active leaks at all sites') +
         pn.ylab('') +
@@ -63,7 +66,7 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
                  panel_grid_major_y=pn.element_line(colour='black', linewidth=1, alpha=0.5)))
 
     plot_time_2.save(output_directory / 'plot_time_active_{}.png'.format(sim_n),
-                     width=10, height=3, dpi=300, verbose=False)
+                     width=10, height=3, dpi=300)
 
     # Site-level plots
     plot_site_1 = (
@@ -78,7 +81,7 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
         pn.ggtitle('Empirical cumulative distribution of site-level emissions'))
 
     plot_site_1.save(output_directory / 'site_cum_dist_{}.png'.format(sim_n),
-                     width=5, height=4, dpi=300, verbose=False)
+                     width=5, height=4, dpi=300)
 
     # Leak plots
     plot_leak_1 = (
@@ -90,7 +93,7 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
         pn.ggtitle('Distribution of leak duration') +
         pn.xlab('Number of days the leak was active') + pn.ylab('Count'))
     plot_leak_1.save(output_directory / 'leak_active_hist{}.png'.format(sim_n),
-                     width=5, height=4, dpi=300, verbose=False)
+                     width=5, height=4, dpi=300)
 
     plot_leak_2 = (
         pn.ggplot(leak_df, pn.aes('cum_frac_leaks', 'cum_frac_rate', colour='status')) +
@@ -105,7 +108,7 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
         pn.ggtitle('Fractional cumulative distribution'))
 
     plot_leak_2.save(output_directory / 'leak_cum_dist1_{}.png'.format(sim_n),
-                     width=4, height=4, dpi=300, verbose=False)
+                     width=4, height=4, dpi=300)
 
     plot_leak_3 = (
         pn.ggplot(leak_df, pn.aes('cum_frac_leaks', 'cum_rate', colour='status')) +
@@ -121,6 +124,6 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
         pn.ggtitle('Absolute cumulative distribution'))
 
     plot_leak_3.save(output_directory / 'leak_cum_dist2_{}.png'.format(sim_n),
-                     width=4, height=4, dpi=300, verbose=False)
+                     width=4, height=4, dpi=300)
 
     return

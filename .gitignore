@@ -1,5 +1,4 @@
 
-# Ignore
 *.iml
 *.xml
 *.pyc
@@ -7,6 +6,5 @@
 *.vscode
 **/outputs/
 *.nc
-*.p
-# Include
 !ERA5_2017_2020_AB.nc
+Settings.json
