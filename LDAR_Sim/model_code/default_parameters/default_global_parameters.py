@@ -35,6 +35,5 @@ default_global_parameters = {
     'start_date': [2017, 1, 1],
     'end_date': [2019, 12, 31],
     'reference_program': 'P_ref',
-    'base_program': 'P_base',
     'pregenerate_leaks': False,
 }

@@ -81,7 +81,6 @@ if __name__ == '__main__':
         print_from_simulations = simulation_parameters['print_from_simulations']
         n_simulations = simulation_parameters['n_simulations']
         ref_program = simulation_parameters['reference_program']
-        base_program = simulation_parameters['base_program']
         write_data = simulation_parameters['write_data']
         start_date = simulation_parameters['start_date']
         pregen_leaks = simulation_parameters['pregenerate_leaks']
@@ -109,7 +108,6 @@ if __name__ == '__main__':
         print_from_simulations = programs[0]['print_from_simulations']
         n_simulations = programs[0]['n_simulations']
         ref_program = program_list[0]
-        base_program = program_list[1]
         write_data = programs[0]['write_data']
         start_date = programs[0]['start_date']
 
