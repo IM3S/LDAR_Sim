@@ -195,10 +195,9 @@ if __name__ == '__main__':
     # Do batch reporting
     if write_data:
         # Create a data object...
-        cost_mitigation = cost_mitigation(res, ref_program, base_program,
-                                          output_directory)
+        cost_mitigation = cost_mitigation(res, ref_program, output_directory)
         reporting_data = BatchReporting(
-            output_directory, start_date, ref_program, base_program)
+            output_directory, start_date, ref_program)
         if n_simulations > 1:
             reporting_data.program_report()
             if len(programs) > 1:

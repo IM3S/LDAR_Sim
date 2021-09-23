@@ -40,7 +40,7 @@ default_program_parameters = {
         'leak_file': "",  # 'leak_rates.csv',
         'leak_file_use': 'sample',  # 'sample', 'fit'
         'leak_dist_type': 'lognorm',
-        'leak_dist_params': [-2.776, 1.462],
+        'leak_dist_params': [3.050, 1.490],
         'units': ['kilogram', 'hour'],
         'subtype_leak_dist_file': None,
         'max_leak_rate': 100,
@@ -51,4 +51,10 @@ default_program_parameters = {
     'max_det_op': 0.00,
     'operator_strength': 0,
     'verification_cost': 25,
+    'economics': {'sale_price_natgas': 3,  # $/mcf
+                  'carbon_price_tonnesCO2e': 40,
+                  'social_cost_CH4_tonnes': 1406,
+                  'cost_CCUS': 20,  # $/tonneCO2e
+                  'cost_low_bleed_pneu_tCO2e': 875,  # $/tonneCO2e
+                  'GWP_CH4': 28}  # 100-year
 }

@@ -24,7 +24,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def cost_mitigation(simulation_dfs, ref_program, base_program, output_directory):
+def cost_mitigation(simulation_dfs, ref_program, output_directory):
     """This function takes the simulation dataframes and economics
     default program parameters as inputs. It calculates the cost
     of each LDAR program and breaks each down into individual
@@ -54,10 +54,10 @@ def cost_mitigation(simulation_dfs, ref_program, base_program, output_directory)
     economics_outputs_df = pd.DataFrame(economics_outputs)
 
     # Need to verify if P_base was input. If not, economics module will not work.
-    if 'P_base' in economics_outputs_df.values:
-        print("P_base input. Economics functionality running.")
+    if 'P_ref' in economics_outputs_df.values:
+        print("P_ref input. Economics functionality running.")
     else:
-        raise Exception("No P_base input. Cannot run economics.")
+        raise Exception("No P_ref input. Cannot run economics.")
 
     # Calculate the mean emissions and costs accross all simulations, convert units.
     economics_df = economics_outputs_df.groupby(by='program_name').mean()
@@ -69,34 +69,34 @@ def cost_mitigation(simulation_dfs, ref_program, base_program, output_directory)
                                                            economics_df['GWP_CH4'])
 
     # Find the simulation average emissions from the base program. Subtract from programs.
-    base_value = economics_df.loc['P_base', 'total_emissions_mcf']
-    economics_df['difference_baseline_mcf'] = (economics_df['total_emissions_mcf'] - base_value)
+    P_ref_value = economics_df.loc['P_ref', 'total_emissions_mcf']
+    economics_df['difference_ref_mcf'] = (economics_df['total_emissions_mcf'] - P_ref_value)
 
     # Take difference in emissions and multiply by sale price of natural gas.
     # Check to make sure Alt-Program achieves reductions over Base Program first.
-    for row in economics_df['difference_baseline_mcf']:
+    for row in economics_df['difference_ref_mcf']:
         if row <= 0:
             economics_df['value_gas_sold'] = (
-                abs(economics_df['difference_baseline_mcf']) * economics_df['sale_price_natgas'])
+                abs(economics_df['difference_ref_mcf']) * economics_df['sale_price_natgas'])
         else:
             economics_df['value_gas_sold'] = 0
 
     # Find difference from baseline in tonnes CO2e. Use value for cost/mitigation ratio.
     # Need to verify that Alt-Program achieves reductions over Base Program too.
-    for row in economics_df['difference_baseline_mcf']:
+    for row in economics_df['difference_ref_mcf']:
         if row <= 0:
-            economics_df['dif_baseline_tonnesCO2e'] = (((((abs(economics_df
-                                                       ['difference_baseline_mcf']) * 1000)
-                / 35.3147) * 0.678) / 1000) *
-                economics_df['GWP_CH4'])
+            economics_df['dif_ref_tonnesCO2e'] = (((((abs(economics_df
+                                                          ['difference_ref_mcf']) * 1000)
+                                                     / 35.3147) * 0.678) / 1000) *
+                                                  economics_df['GWP_CH4'])
         else:
-            economics_df['dif_baseline_tonnesCO2e'] = 0
+            economics_df['dif_ref_tonnesCO2e'] = 0
 
     economics_df['cost_mitigation_ratio'] = np.divide(economics_df['total_program_cost'],
-                                                      economics_df['dif_baseline_tonnesCO2e'],
+                                                      economics_df['dif_ref_tonnesCO2e'],
                                                       out=np.zeros_like(
         economics_df['total_program_cost']),
-        where=economics_df['dif_baseline_tonnesCO2e'] != 0)
+        where=economics_df['dif_ref_tonnesCO2e'] != 0)
 
     # Reset index of df and set up program list and x ticks for plotting.
     economics_df.reset_index(inplace=True)
