@@ -42,6 +42,12 @@ class BaseCrew:
         self.deployment_days = deployment_days
         self.itinerary = None
         self.id = id
+        # specify the crew type for differentiate crews
+        self.follow_up = self.config['is_follow_up']
+        if self.follow_up:
+            self.crew_type = 1
+        else:
+            self.crew_type = 0
         self.site = site  # Used by stationary deployment methods
         if len(config['scheduling']['LDAR_crew_init_location']) > 0:
             self.lat = float(config['scheduling']
@@ -70,6 +76,8 @@ class BaseCrew:
         Go to work and find the leaks for a given day
         """
         m_name = self.config['label']
+        cur_timestep = self.state['t'].current_timestep
+        self.timeseries['Crew_footprint'][cur_timestep].append((self.lon,self.lat,self.id,self.crew_type))
         self.worked_today = False
         self.candidate_flags = candidate_flags
         self.days_skipped = 0
@@ -93,7 +101,6 @@ class BaseCrew:
 
         # Update time series and variables and run end day if crew works
         if self.worked_today:
-            cur_timestep = self.state['t'].current_timestep
             self.schedule.end_day(site_pool, itinerary)
             # n_hours =
             self.daily_cost += self.config['cost']['per_hour'] * \
@@ -111,6 +118,13 @@ class BaseCrew:
         Look for emissions at the chosen site.
         """
         m_name = self.config['label']
+
+        # update locations of crew to site
+        s_lon = float(site['lon'])
+        s_lat = float(site['lat'])
+        self.timeseries['Crew_footprint'][self.state['t'].current_timestep].append((s_lon,s_lat,self.id,self.crew_type))
+        self.lon = s_lon
+        self.lat = s_lat
 
         site_detect_results = self.detect_emissions(site)
 

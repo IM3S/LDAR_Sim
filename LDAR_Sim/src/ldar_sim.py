@@ -33,6 +33,7 @@ from daylight_calculator import DaylightCalculatorAve
 from utils.generic_functions import make_maps
 from utils.distributions import leak_rvs
 from geography.vector import grid_contains_point
+from geography.trajectory import build_crew_trajectories,map_trajectories
 from initialization.sites import generate_sites
 from initialization.leaks import (generate_leak,
                                   generate_initial_leaks)
@@ -401,11 +402,22 @@ class LdarSim:
                 params['output_directory']
                 / 'sites_output_{}.csv'.format(params['simulation']), index=False)
 
+            trajectory_df.to_csv(params['output_directory']
+                /'trajectory_output_{}.csv'.format(params['simulation']), index=False)
+
             # Write metadata
             f_name = params['output_directory'] / "metadata_{}.txt".format(params['simulation'])
             metadata = open(f_name, 'w')
             metadata.write(str(params) + '\n' + str(datetime.datetime.now()))
             metadata.close()
+
+			# create trajectory vedio
+            output_path = params['output_directory']/'trajectory_ani_{}.gif'.format(params['simulation'])
+            ani = map_trajectories(trajectory_df, schedule, site_df)
+            writervideo = animation.PillowWriter(fps=30)
+            ani.save(output_path, writer=writervideo)
+            del ani
+
 
         # Make maps and append site-level DD and MCB data
         if self.global_params['make_maps']:

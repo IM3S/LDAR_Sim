@@ -97,7 +97,8 @@ def ldar_sim_run(simulation):
         'n_tags': [],
         'rolling_cost_estimate': [],
         'cum_repaired_leaks': [],
-        'daily_emissions_kg': []
+        'daily_emissions_kg': [],
+		'Crew_footprint':[],
     }
 
     # -----------------------------Run simulations----------------------------------
