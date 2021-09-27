@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program:     The LDAR Simulator (LDAR-Sim)
-# File:        geography.vector
-# Purpose:     Various vector operations
+# File:        geography.trajectory
+# Purpose:     Organize and map crews' trajectories 
 #
 # Copyright (C) 2018-2021  Intelligent Methane Monitoring and Management System (IM3S) Group
 #
