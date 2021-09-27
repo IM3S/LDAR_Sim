@@ -98,7 +98,7 @@ def ldar_sim_run(simulation):
         'rolling_cost_estimate': [],
         'cum_repaired_leaks': [],
         'daily_emissions_kg': [],
-		'crew_footprint':[],
+	'crew_footprint':[],
     }
 
     # -----------------------------Run simulations----------------------------------
