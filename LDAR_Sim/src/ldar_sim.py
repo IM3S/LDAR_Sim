@@ -368,6 +368,24 @@ class LdarSim:
             time_df = pd.DataFrame(self.timeseries)
             site_df = pd.DataFrame(self.state['sites'])
 
+            # Check the compliance
+            field = None
+            for c in site_df.columns:
+                if 'surveys_conducted' in c:
+                    field = c
+            label = ''
+            for e in field.split('_'):
+                if e == 'surveys':
+                    break
+                label += e
+                label +='_'
+                    
+            label = label[:-1]
+            year = np.ceil(len(time_df)/365)
+            rs = np.array(site_df['{}_RS'.format(label)]).astype(int)*year
+            sc = site_df[field]
+            site_df['{}_compliance'.format(label)] = rs - sc
+            
             # Create some new variables for plotting
             site_df['cum_frac_sites'] = list(site_df.index)
             site_df['cum_frac_sites'] = site_df['cum_frac_sites'] / \
