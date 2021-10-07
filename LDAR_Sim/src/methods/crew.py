@@ -77,7 +77,7 @@ class BaseCrew:
         """
         m_name = self.config['label']
         cur_timestep = self.state['t'].current_timestep
-        self.timeseries['Crew_footprint'][cur_timestep].append(
+        self.timeseries['crew_footprint'][cur_timestep].append(
             (self.lon, self.lat, self.id, self.crew_type))
         self.worked_today = False
         self.candidate_flags = candidate_flags
@@ -129,7 +129,7 @@ class BaseCrew:
         # update locations of crew to site
         self.lon = float(site['lon'])
         self.lat = float(site['lat'])
-        self.timeseries['Crew_footprint'][self.state['t'].current_timestep].append(
+        self.timeseries['crew_footprint'][self.state['t'].current_timestep].append(
             (self.lon, self.lat, self.id, self.crew_type))
 
         site_detect_results = self.detect_emissions(site)
