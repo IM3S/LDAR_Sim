@@ -442,7 +442,7 @@ class LdarSim:
             metadata.write(str(params) + '\n' + str(datetime.datetime.now()))
             metadata.close()
 
-	    # Create trajectory vedio
+	    # Create trajectory gif
             output_path = params['output_directory']/'trajectory_ani_{}.gif'.format(params['simulation'])
             ani = map_trajectories(trajectory_df, schedule, site_df)
             writervideo = animation.PillowWriter(fps=30)
