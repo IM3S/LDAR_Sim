@@ -34,6 +34,7 @@ from utils.generic_functions import make_maps
 from utils.distributions import leak_rvs
 from geography.vector import grid_contains_point
 from geography.trajectory import build_crew_trajectories, map_trajectories
+from matplotlib import animation
 from initialization.sites import generate_sites
 from initialization.leaks import (generate_leak,
                                   generate_initial_leaks)
@@ -367,24 +368,28 @@ class LdarSim:
             leak_df = pd.DataFrame(leaks)
             time_df = pd.DataFrame(self.timeseries)
             site_df = pd.DataFrame(self.state['sites'])
+            
+            
+            # extract the footprints of crews from timeseries
+            fp = time_df['crew_footprint']
+            
+            # record information for mapping trajectories of crews
+            schedule = {'route_planning': False,
+                        'init_loc': None,
+                        'homebase': None}
+            
+            for m_label, m_obj in params['methods'].items():
+                if 'scheduling' in m_obj:
+                    if m_obj['scheduling']['route_planning']:
+                        schedule['route_planning'] = True
+                        schedule['init_loc'] = m_obj['scheduling']['LDAR_crew_init_location']
+                        homebase_file = params['input_directory'] / \
+                            m_obj['scheduling']['home_bases']
+                        schedule['homebase'] = pd.read_csv(
+                            homebase_file, sep=',')
 
-            # Check the compliance
-            field = None
-            for c in site_df.columns:
-                if 'surveys_conducted' in c:
-                    field = c
-            label = ''
-            for e in field.split('_'):
-                if e == 'surveys':
-                    break
-                label += e
-                label +='_'
-                    
-            label = label[:-1]
-            year = np.ceil(len(time_df)/365)
-            rs = np.array(site_df['{}_RS'.format(label)]).astype(int)*year
-            sc = site_df[field]
-            site_df['{}_compliance'.format(label)] = rs - sc
+            trajectory_df = build_crew_trajectories(fp, schedule)
+
             
             # Create some new variables for plotting
             site_df['cum_frac_sites'] = list(site_df.index)

@@ -170,6 +170,8 @@ class Schedule():
         elif len(itinerary) > 0:
             self.state['t'].current_date += timedelta(
                 minutes=int(itinerary[-1]['travel_home_mins']))
+        # return crew's last coordiates of the day
+        return self.crew_lon, self.crew_lat
 
     def plan_visit(self, site, next_site=None, est_mins_remaining=None):
         """ Check survey and travel times and see if there is enough time
