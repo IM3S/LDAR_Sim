@@ -77,7 +77,8 @@ class BaseCrew:
         """
         m_name = self.config['label']
         cur_timestep = self.state['t'].current_timestep
-        self.timeseries['Crew_footprint'][cur_timestep].append((self.lon,self.lat,self.id,self.crew_type))
+        self.timeseries['Crew_footprint'][cur_timestep].append(
+            (self.lon, self.lat, self.id, self.crew_type))
         self.worked_today = False
         self.candidate_flags = candidate_flags
         self.days_skipped = 0
@@ -93,7 +94,8 @@ class BaseCrew:
                     self.visit_site(site_plan['site'])
                 self.worked_today = True
                 # NOTE Mobile LDAR_mins also includes travel to site time
-                self.state['t'].current_date += timedelta(minutes=int(site_plan['LDAR_mins']))
+                self.state['t'].current_date += timedelta(
+                    minutes=int(site_plan['LDAR_mins']))
                 self.daily_cost += self.config['cost']['per_site']
                 if self.config['deployment_type'] == 'mobile':
                     daily_LDAR_time += site_plan['LDAR_mins_onsite']
@@ -101,14 +103,19 @@ class BaseCrew:
 
         # Update time series and variables and run end day if crew works
         if self.worked_today:
-            self.schedule.end_day(site_pool, itinerary)
+             # return crew's last coordiates of the day
+            self.lon, self.lat = self.schedule.end_day(site_pool, itinerary)
+            self.timeseries['crew_footprint'][cur_timestep].append(
+                (self.lon, self.lat, self.id, self.crew_type))
             # n_hours =
             self.daily_cost += self.config['cost']['per_hour'] * \
                 (self.state['t'].current_date.hour-self.schedule.start_hour)
             self.daily_cost += self.config['cost']['per_day']
-            self.timeseries['{}_cost'.format(m_name)][cur_timestep] += self.daily_cost
+            self.timeseries['{}_cost'.format(
+                m_name)][cur_timestep] += self.daily_cost
             self.timeseries['total_daily_cost'][cur_timestep] += self.daily_cost
-            self.timeseries['{}_survey_time'.format(m_name)][cur_timestep] += daily_LDAR_time
+            self.timeseries['{}_survey_time'.format(
+                m_name)][cur_timestep] += daily_LDAR_time
             if self.config['deployment_type'] == 'mobile':
                 self.timeseries['{}_travel_time'.format(m_name)][cur_timestep] += \
                     daily_travel_time + itinerary[-1]['travel_home_mins']
@@ -120,11 +127,10 @@ class BaseCrew:
         m_name = self.config['label']
 
         # update locations of crew to site
-        s_lon = float(site['lon'])
-        s_lat = float(site['lat'])
-        self.timeseries['Crew_footprint'][self.state['t'].current_timestep].append((s_lon,s_lat,self.id,self.crew_type))
-        self.lon = s_lon
-        self.lat = s_lat
+        self.lon = float(site['lon'])
+        self.lat = float(site['lat'])
+        self.timeseries['Crew_footprint'][self.state['t'].current_timestep].append(
+            (self.lon, self.lat, self.id, self.crew_type))
 
         site_detect_results = self.detect_emissions(site)
 
@@ -160,14 +166,16 @@ class BaseCrew:
         for leak in site['active_leaks']:
             # Check to see if leak is spatially covered
             if '{}_sp_covered' not in leak:
-                is_sp_covered = np.random.binomial(1, self.config['coverage']['spatial'])
+                is_sp_covered = np.random.binomial(
+                    1, self.config['coverage']['spatial'])
                 leak['{}_sp_covered'.format(m_name)] = is_sp_covered
             if leak['{}_sp_covered'.format(m_name)]:
                 # Check to see if leak is temporally covered
                 if np.random.binomial(1, self.config['coverage']['temporal']):
                     covered_leaks.append(leak)
                     covered_site_rate += leak['rate']
-                    covered_equipment_rates[leak['equipment_group']-1] += leak['rate']
+                    covered_equipment_rates[leak['equipment_group'] -
+                                            1] += leak['rate']
             site_rate += leak['rate']
             equipment_rates[leak['equipment_group']-1] += leak['rate']
             # Get the type of sensor, and call the the detect emissions function for sensor
@@ -181,7 +189,8 @@ class BaseCrew:
             covered_site_rate += venting
             site_rate += venting
             for rate in range(len(covered_equipment_rates)):
-                covered_equipment_rates[rate] += venting/int(site['equipment_groups'])
+                covered_equipment_rates[rate] += venting / \
+                    int(site['equipment_groups'])
                 equipment_rates[rate] += venting/int(site['equipment_groups'])
 
         sensor_mod = import_module(
