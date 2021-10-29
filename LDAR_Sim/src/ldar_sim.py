@@ -33,6 +33,8 @@ from daylight_calculator import DaylightCalculatorAve
 from utils.generic_functions import make_maps
 from utils.distributions import leak_rvs
 from geography.vector import grid_contains_point
+from geography.trajectory import build_crew_trajectories, map_trajectories
+from matplotlib import animation
 from initialization.sites import generate_sites
 from initialization.leaks import (generate_leak,
                                   generate_initial_leaks)
@@ -67,7 +69,8 @@ class LdarSim:
                 params['input_directory'] / params['economics']['repair_costs']['file']))
             # Read in the sites as a list of dictionaries
         if len(state['sites']) < 1:
-            state['sites'], _, _ = generate_sites(params, params['input_directory'])
+            state['sites'], _, _ = generate_sites(
+                params, params['input_directory'])
         state['max_leak_rate'] = params['emissions']['max_leak_rate']
         state['t'].set_UTC_offset(state['sites'])
 
@@ -139,7 +142,8 @@ class LdarSim:
         timeseries['total_daily_cost'] = np.zeros(params['timesteps'])
         timeseries['repair_cost'] = np.zeros(params['timesteps'])
         timeseries['verification_cost'] = np.zeros(params['timesteps'])
-        timeseries['operator_redund_tags'] = np.zeros(self.parameters['timesteps'])
+        timeseries['operator_redund_tags'] = np.zeros(
+            self.parameters['timesteps'])
         timeseries['operator_tags'] = np.zeros(self.parameters['timesteps'])
         timeseries['new_leaks'] = np.zeros(self.parameters['timesteps'])
         timeseries['cum_repaired_leaks'] = np.zeros(self.parameters['timesteps'])
@@ -200,7 +204,8 @@ class LdarSim:
                 state['empirical_vents'].append(mc_vent_total)
 
             # Change negatives to zero
-            state['empirical_vents'] = [0 if i < 0 else i for i in state['empirical_vents']]
+            state['empirical_vents'] = [
+                0 if i < 0 else i for i in state['empirical_vents']]
         return
 
     def update(self):
@@ -365,10 +370,33 @@ class LdarSim:
             leak_df = pd.DataFrame(leaks)
             time_df = pd.DataFrame(self.timeseries)
             site_df = pd.DataFrame(self.state['sites'])
+            
+            
+            # extract the footprints of crews from timeseries
+            fp = time_df['crew_footprint']
+            
+            # record information for mapping trajectories of crews
+            schedule = {'route_planning': False,
+                        'init_loc': None,
+                        'homebase': None}
+            
+            for m_label, m_obj in params['methods'].items():
+                if 'scheduling' in m_obj:
+                    if m_obj['scheduling']['route_planning']:
+                        schedule['route_planning'] = True
+                        schedule['init_loc'] = m_obj['scheduling']['LDAR_crew_init_location']
+                        homebase_file = params['input_directory'] / \
+                            m_obj['scheduling']['home_bases']
+                        schedule['homebase'] = pd.read_csv(
+                            homebase_file, sep=',')
 
+            trajectory_df = build_crew_trajectories(fp, schedule)
+
+            
             # Create some new variables for plotting
             site_df['cum_frac_sites'] = list(site_df.index)
-            site_df['cum_frac_sites'] = site_df['cum_frac_sites'] / max(site_df['cum_frac_sites'])
+            site_df['cum_frac_sites'] = site_df['cum_frac_sites'] / \
+                max(site_df['cum_frac_sites'])
             site_df['cum_frac_emissions'] = np.cumsum(
                 sorted(site_df['total_emissions_kg'], reverse=True))
             site_df['cum_frac_emissions'] = site_df['cum_frac_emissions'] \
@@ -379,12 +407,15 @@ class LdarSim:
             leaks_repaired = leak_df[leak_df.status == 'repaired'] \
                 .sort_values('rate', ascending=False)
 
-            leaks_active['cum_frac_leaks'] = list(np.linspace(0, 1, len(leaks_active)))
+            leaks_active['cum_frac_leaks'] = list(
+                np.linspace(0, 1, len(leaks_active)))
             leaks_active['cum_rate'] = np.cumsum(leaks_active['rate'])
-            leaks_active['cum_frac_rate'] = leaks_active['cum_rate'] / max(leaks_active['cum_rate'])
+            leaks_active['cum_frac_rate'] = leaks_active['cum_rate'] / \
+                max(leaks_active['cum_rate'])
 
             if len(leaks_repaired) > 0:
-                leaks_repaired['cum_frac_leaks'] = list(np.linspace(0, 1, len(leaks_repaired)))
+                leaks_repaired['cum_frac_leaks'] = list(
+                    np.linspace(0, 1, len(leaks_repaired)))
                 leaks_repaired['cum_rate'] = np.cumsum(leaks_repaired['rate'])
                 leaks_repaired['cum_frac_rate'] = leaks_repaired['cum_rate'] \
                     / max(leaks_repaired['cum_rate'])
@@ -403,11 +434,22 @@ class LdarSim:
                 params['output_directory']
                 / 'sites_output_{}.csv'.format(params['simulation']), index=False)
 
+            trajectory_df.to_csv(params['output_directory']
+                                 / 'trajectory_output_{}.csv'.format(params['simulation']), index=False)
+
             # Write metadata
-            f_name = params['output_directory'] / "metadata_{}.txt".format(params['simulation'])
+            f_name = params['output_directory'] / \
+                "metadata_{}.txt".format(params['simulation'])
             metadata = open(f_name, 'w')
             metadata.write(str(params) + '\n' + str(datetime.datetime.now()))
             metadata.close()
+
+	    # Create trajectory gif
+            output_path = params['output_directory']/'trajectory_ani_{}.gif'.format(params['simulation'])
+            ani = map_trajectories(trajectory_df, schedule, site_df)
+            writervideo = animation.PillowWriter(fps=30)
+            ani.save(output_path, writer=writervideo)
+            del ani
 
         # Make maps and append site-level DD and MCB data
         if self.global_params['make_maps']:
