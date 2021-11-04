@@ -6,8 +6,16 @@ measurement_scale: equipment
 sensor: 
   type: default
   MDL: [0.1]
-is_follow_up: False
+is_follow_up: True
 cost:
-  per_day: 2000
+  per_day: 0
+  per_site: 300
+  upfront: 0
 t_bw_sites:
-  vals: [10]
+  vals: [5]
+follow_up:
+  threshold: 0.0
+reporting_delay: 2
+sensor:
+  type: default
+  MDL: [1.39]

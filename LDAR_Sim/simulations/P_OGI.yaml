@@ -3,3 +3,14 @@ parameter_level: program
 version: '2.0'
 method_labels:
 - OGI
+site_samples: 500
+repair_delay: 14
+NRd: 365
+emissions:
+  consider_venting: False
+  leak_dist_params: [-2.776, 1.462]
+  LPR: 0.0065
+economics:
+  carbon_price_tonnesCO2e: 40.0
+  sale_price_natgas: 3.0
+infrastructure_file: 'facility_list_template.csv'

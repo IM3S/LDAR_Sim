@@ -11,4 +11,4 @@ coverage:
   temporal: 0.12
 cost:
   upfront: 500
-  per_day: 10
+  per_day: 1

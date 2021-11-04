@@ -7,7 +7,16 @@ sensor:
   type: OGI_camera
   MDL: [0.01275, 2.78e-6]
 is_follow_up: False
+follow_up:
+  threshold: 0.0
+reporting_delay: 2
+sensor:
+  type: default
+  MDL: [0.01275, 2.78e-6]
 cost:
   per_day: 2500
+  per_site: 0
+  upfront: 0
 t_bw_sites:
+  vals: [30]
   file: time_offsite_ground.csv
