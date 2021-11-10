@@ -3,11 +3,44 @@ version: '2.0'
 label: OGI
 deployment_type: mobile
 measurement_scale: component
-sensor: 
-  type: OGI_camera
-  MDL: [0.01275, 2.78e-6]
+
 is_follow_up: False
+reporting_delay: 2
+consider_daylight: False
 cost:
   per_day: 2500
+  per_site: 0
+  per_hour: 0
+  upfront: 0
+coverage:
+  spatial: 0.01
+  temporal: 1.0
+follow_up:
+  delay: 0
+  instant_threshold: '_placeholder_float_'
+  instant_threshold_type: 'absolute'
+  interaction_priority: 'threshold'
+  proportion: 1.0
+  redundancy_filter: 'recent'
+  threshold: 0.0
+  threshold_type: 'absolute'
+max_workday: 8
+n_crews: 1
+scheduling:
+  deployment_months: ['_placeholder_int_']
+  deployment_years: ['_placeholder_int_']
+  LDAR_crew_init_location: [-114.062, 51.044]
+  home_bases_files: 'Airport_AB_Coordinates.csv'
+  route_planning: False
+  travel_speeds: ['_placeholder_int_']
+sensor:
+  type: OGI_camera
+  QE: 0.0
+  MDL: [0.01275, 2.78e-6]
 t_bw_sites:
   file: time_offsite_ground.csv
+  vals: [30]
+weather_envs:
+  precip: [0.0, 0.5]
+  temp: [-30.0, 40.0]
+  wind: [0.0, 10.0] 

@@ -1,6 +1,9 @@
-
 parameter_level: global
 version: '2.0'
 pregenerate_leaks: True
 reference_program: P_OGI
 baseline_program: P_none
+
+n_simulations: 3
+start_date: [2017, 1, 1]
+end_date: [2020, 01, 01]
