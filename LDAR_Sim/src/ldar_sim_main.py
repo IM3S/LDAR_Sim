@@ -30,7 +30,7 @@ from pathlib import Path
 from economics.cost_mitigation import cost_mitigation
 from initialization.args import files_from_args, get_abs_path
 from initialization.input_manager import InputManager
-from initialization.sims import create_sims
+from initialization.test import create_sims
 from initialization.sites import init_generator_files
 from ldar_sim_run import ldar_sim_run
 from out_processing.batch_reporting import BatchReporting
@@ -76,7 +76,9 @@ if __name__ == '__main__':
         shutil.rmtree(out_dir)
     os.makedirs(out_dir)
     input_manager.write_parameters(out_dir / 'parameters.yaml')
-
+    # Temp
+    generator_dir = in_dir / "generator"
+    simulations2 = create_sims(sim_params, programs, generator_dir, in_dir, out_dir, input_manager)
     # If leak generator is used and there are generated files, user is prompted
     # to use files, If they say no, the files will be removed
     if sim_params['pregenerate_leaks']:

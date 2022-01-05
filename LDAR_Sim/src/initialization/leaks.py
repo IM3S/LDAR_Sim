@@ -106,14 +106,14 @@ def generate_initial_leaks(program, site):
         list: List of leaks at a site
     """
     # Get distribit
-    n_leaks = random.binomial(program['NRd'], program['emissions']['LPR'])
+    n_leaks = random.binomial(program['emissions']['NRd'], program['emissions']['LPR'])
     prog_start_date = datetime(*program['start_date'])
     initial_site_leaks = []
     site.update({'initial_leaks': n_leaks, 'cum_leaks': n_leaks})
     leak_count = 0
     for leak in range(n_leaks):
         leak_count += 1
-        days_active = random.randint(0, high=program['NRd'])
+        days_active = random.randint(0, high=program['emissions']['NRd'])
         leak_start_date = prog_start_date - timedelta(days=days_active)
         initial_site_leaks.append(
             generate_leak(program, site, leak_start_date, leak_count, days_active))

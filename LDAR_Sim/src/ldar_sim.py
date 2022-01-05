@@ -249,7 +249,7 @@ class LdarSim:
                 self.active_leaks.append(leak)
 
                 # Tag by natural if leak is due for NR
-                if leak['days_active'] == self.parameters['NRd']:
+                if leak['days_active'] == self.parameters['emissions']['NRd']:
                     update_tag(leak, site, self.timeseries, self.state['t'], 'natural')
 
         self.timeseries['active_leaks'].append(len(self.active_leaks))
