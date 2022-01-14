@@ -1,0 +1,11 @@
+version: '3'
+
+
+services:
+  core:
+    build: .
+    restart: always
+    tty: true
+    entrypoint: /docker-entrypoint.sh
+    volumes:
+      - .:/code
