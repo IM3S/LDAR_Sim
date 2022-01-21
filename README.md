@@ -49,7 +49,7 @@ Read the user manual [manual](USER_MANUAL.md)
 Read [Fox et al 2020](https://www.sciencedirect.com/science/article/pii/S0959652620352811) to familiarize yourself with LDAR-Sim fundamentals.
 
 #### Step 2: Using Docker to set up the project and run the simulation
-The easiest way to set up the environment and run the simulation is using [Docker](https://www.docker.com/). To use this option, you firstly need to [download](https://docs.docker.com/get-docker/) and install Docker Desktop on your system. TThe next step is opening up a terminal in the root directory where the project is on your computer and typing the following command:
+The easiest way to set up the environment and run the simulation is using [Docker](https://www.docker.com/). To use this option, you firstly need to [download](https://docs.docker.com/get-docker/) and install Docker Desktop on your system. The next step is opening up a terminal in the root directory where the project is on your computer and typing the following command:
 
 `docker-compose up`
 
