@@ -48,7 +48,16 @@ Read and understand the LDAR-Sim LICENSE (MIT License).
 Read the user manual [manual](USER_MANUAL.md)
 Read [Fox et al 2020](https://www.sciencedirect.com/science/article/pii/S0959652620352811) to familiarize yourself with LDAR-Sim fundamentals.
 
-#### Step 2: Libraries and data
+#### Step 2: Using Docker to set up the project and run the simulation
+The easiest way to set up the environment and run the simulation is using [Docker](https://www.docker.com/). To use this option, you firstly need to [download](https://docs.docker.com/get-docker/) and install Docker Desktop on your system. TThe next step is opening up a terminal in the root directory where the project is on your computer and typing the following command:
+
+`docker-compose up`
+
+To stop and remove the containers, networks, volumes, and images created by `docker-compose up`,type the follownig command in your terminal:
+
+`docker-compose down`
+
+#### Step 2 Alternative: Libraries and data
 Install python 3.x. and ensure all required python modules/packages/libraries are available, as listed in the Pipfile.
 The easiest way to prepare your python installation is to use [pipenv](https://pipenv.pypa.io/en/latest/) to manage a virtual environment that has the required packages. Navigate to the src directory and type: 
 
