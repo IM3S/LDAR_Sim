@@ -20,10 +20,6 @@
 # ------------------------------------------------------------------------------
 
 from datetime import datetime, timedelta
-from statistics import mean
-
-import pytz
-from timezonefinder import TimezoneFinder
 
 
 class TimeCounter:
@@ -48,20 +44,3 @@ class TimeCounter:
         self.current_date += timedelta(days=1)
         self.current_timestep += 1
         return
-
-    def set_UTC_offset(self, sites):
-        '''
-        set UTC offset based on average site lat longs
-
-        Uses current (now()) offset
-        '''
-        avg_lat = mean([float(site['lat']) for site in sites])
-        avg_lon = mean([float(site['lon']) for site in sites])
-        tf = TimezoneFinder()
-        timezone_str = tf.timezone_at(lng=avg_lon, lat=avg_lat)
-        # This uses the current time to estimate offset, so if running
-        # software during DST, the the offset will include DST. Fix this
-        # someday, by keeping timezone as a site variable and localizing
-        # very year.
-        tz_now = datetime.now(pytz.timezone(timezone_str))
-        self.UTC_offset = tz_now.utcoffset().total_seconds()/60/60

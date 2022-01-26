@@ -121,14 +121,12 @@ class InputManager:
         :param parameters = the input parameter dictionary
         :return returns the compliant parameters dictionary, and optionally mined global parameters
         """
-        if 'version' not in parameters:
+        if 'version' not in parameters and parameters['parameter_level'] == "global":
             print('Warning: interpreting parameters as version 2.0 because version key was missing')
             parameters['version'] = '2.0'
 
         # address all parameter mapping, the input_mapper_v1 is available as a template
         mined_global_parameters = {}
-        # if parameters['version'] == '1.0':
-        #     parameters, mined_global_parameters = input_mapper_v1(parameters)
         return(parameters, mined_global_parameters)
 
     def parse_parameters(self, new_parameters_list):
@@ -156,7 +154,7 @@ class InputManager:
                         programs = programs + new_parameters.pop('programs')
 
                 check_types(self.simulation_parameters, new_parameters, omit_keys=['programs'])
-                self.simulation_parameters.update(new_parameters)
+                self.retain_update(self.simulation_parameters, new_parameters)
 
             elif new_parameters['parameter_level'] == 'program':
                 if 'default_parameters' not in new_parameters:

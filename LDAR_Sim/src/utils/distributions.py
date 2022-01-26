@@ -21,11 +21,12 @@ import numpy as np
 # along with this program.  If not, see <https://opensource.org/licenses/MIT>.
 #
 # ------------------------------------------------------------------------------
-import scipy
+from scipy import stats
+from copy import deepcopy
 from utils.unit_converter import gas_convert
 
 
-def fit_dist(samples=None, dist_type="lognorm", loc=0, shape=None, scale=None):
+def fit_dist(samples=None, dist_params=None, dist_type="lognorm", loc=0, shape=None, scale=None):
     """Fit a distribution (leak rates) by a distribution type.
     Args:
         samples (list, optional): List of samples (leak rates in g/s)
@@ -39,24 +40,24 @@ def fit_dist(samples=None, dist_type="lognorm", loc=0, shape=None, scale=None):
     Returns:
         Scipy distribution Object: Distribution object, can be called with rvs, pdf,cdf exc.
     """
-    dist = getattr(scipy.stats, dist_type)
+    params = deepcopy(dist_params)
+    if isinstance(params, str):
+        # IF shapes a string ie'[2,23.4]', then convert to pyobject (int or list)
+        params = json.loads(params)
+    dist = getattr(stats, dist_type)
     if samples is not None:
         try:
             param = dist.fit(samples, floc=loc)
         except:  # noqa: E722 - scipy custom error, needs to be imported
             'some distributions cannot take 0 values'
             samples = [s for s in samples if s > 0]
-            param = dist.fit(samples, floc=loc)
-        loc = param[-2],
-        scale = param[-1]
-        shape = param[:-2]
-    if isinstance(shape, str):
-        # IF shapes a string ie'[2,23.4]', then convert to pyobject (int or list)
-        shape = json.loads(shape)
-    if not isinstance(shape, list):
-        # If the shape is not a list, convert to a list
-        shape = [shape]
-    return dist(*shape, loc=loc, scale=scale)
+            param = list(dist.fit(samples, floc=loc))
+        params = [param[-1]] + param[:-2]
+    else:
+        if dist_type == 'lognorm':
+            params[0] = np.exp(params[0])
+
+    return dist(params[1:], loc=loc, scale=params[0])
 
 
 def leak_rvs(distribution, max_size=None, gpsec_conversion=None):
@@ -69,7 +70,9 @@ def leak_rvs(distribution, max_size=None, gpsec_conversion=None):
     Returns:
         float: leak size in units provided
     """
-
+    if isinstance(gpsec_conversion, str):
+        # IF shapes a string ie'[2,23.4]', then convert to pyobject (int or list)
+        gpsec_conversion = json.loads(gpsec_conversion.replace("'", '"'))
     while True:
         leaksize = distribution.rvs()  # Get Random Value from Distribution
         if gpsec_conversion and  \
@@ -91,10 +94,6 @@ def unpackage_dist(program):
     """
     # --------- Leak distributions -------------
     for st_idx, subtype in program['subtypes'].items():
-        if subtype['dist_type'] == 'lognorm':
-            subtype['dist_scale'] = np.exp(subtype['dist_scale'])
-        if 'dist_sigma' in subtype:
-            subtype['dist_shape'] = [subtype['dist_sigma']]
         subtype['leak_rate_dist'] = fit_dist(
             dist_type=subtype['dist_type'],
             shape=subtype['dist_shape'],

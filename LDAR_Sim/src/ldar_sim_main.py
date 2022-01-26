@@ -26,16 +26,17 @@ import multiprocessing as mp
 import os
 import shutil
 from pathlib import Path
+import time
 
 from economics.cost_mitigation import cost_mitigation
 from initialization.args import files_from_args, get_abs_path
 from initialization.input_manager import InputManager
 from initialization.sims import create_sims
 from initialization.sites import init_generator_files
+from initialization.virtual_world import gen_sites
 from ldar_sim_run import ldar_sim_run
 from out_processing.batch_reporting import BatchReporting
 from out_processing.prog_table import generate as gen_prog_table
-from utils.generic_functions import check_ERA5_file
 
 opening_msg = """
 You are running LDAR-Sim version 2.0 an open sourced software (MIT) license.
@@ -65,9 +66,11 @@ if __name__ == '__main__':
     in_dir = get_abs_path(sim_params['input_directory'])
     out_dir = get_abs_path(sim_params['output_directory'])
     programs = sim_params.pop('programs')
+    t0 = time.time()
+    sites = gen_sites(sim_params, in_dir)
+    print("Sites load time: {} s".format(round(time.time() - t0, 2)))
 
     # --- Run Checks ----
-    check_ERA5_file(in_dir, programs)
     has_ref = ref_program in programs
     has_base = base_program in programs
 

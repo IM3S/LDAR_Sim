@@ -19,13 +19,12 @@
 #
 # ------------------------------------------------------------------------------
 
-from datetime import datetime, timedelta
-
+from datetime import timedelta
 from numpy import random
 from utils.distributions import leak_rvs
 
 
-def generate_leak(program, site, start_date, leak_count, days_active=0):
+def generate_leak(facility, start_date, leak_count, days_active=0):
     """ Generate a single leak at a site
 
     Args:
@@ -38,21 +37,20 @@ def generate_leak(program, site, start_date, leak_count, days_active=0):
     Returns:
         dict: Leak object
     """
-    if program['emissions']['leak_file'] \
-            and program['emissions']['leak_file_use'] == 'sample':
-        leak_rate = random.choice(program['emissions']['empirical_leaks'])
+    if facility['empirical_leaks'] and facility['leak_file_use'] == 'sample':
+        leak_rate = random.choice(facility['empirical_leaks'])
     else:
         leak_rate = leak_rvs(
-            site['leak_rate_dist'],
-            program['emissions']['max_leak_rate'],
-            site['leak_rate_units'])
+            facility['leak_dist'],
+            facility['max_leak_rate'],
+            facility['units'])
     return {
-        'leak_ID': '{}_{}'.format(site['facility_ID'], str(leak_count).zfill(10)),
-        'facility_ID': str(site['facility_ID']),
-        'equipment_group': random.randint(1, int(site['equipment_groups'])+1),
+        'leak_ID': '{}_{}'.format(facility['facility_ID'], str(leak_count).zfill(5)),
+        'facility_ID': str(facility['facility_ID']),
+        'equipment_group': random.randint(1, int(facility['equipment_groups'])+1),
         'rate': leak_rate,
-        'lat': float(site['lat']),
-        'lon': float(site['lon']),
+        'lat': float(facility['lat']),
+        'lon': float(facility['lon']),
         'status': 'active',
         'days_active': days_active,
         'days_active_prog_start': days_active,
@@ -70,51 +68,47 @@ def generate_leak(program, site, start_date, leak_count, days_active=0):
     }
 
 
-def generate_leak_timeseries(program, site, leak_count=0):
-    """ Generate a time series of leaks for a single site
-
-    Args:
-        program (dict): Program parameter dictionary
-        site (dict): Site parameter and variable dictionary
-        leak_count (integer): Number of leaks at site, used for creating id
-
-    Returns:
-        list: Timeseries of leaks at a site. None is a placeholder for days without leaks
-    """
-    # Get leak timeseries
-    start_date = datetime(*program['start_date'])
-    n_timesteps = (datetime(*program['end_date'])-start_date).days
-    site_timeseries = []
-    for t in range(n_timesteps):
-        if random.binomial(1, program['emissions']['LPR']):
-            cur_dt = start_date + timedelta(days=t)
-            site['cum_leaks'] += 1
-            site_timeseries.append(generate_leak(program, site, cur_dt, site['cum_leaks']))
-        else:
-            site_timeseries.append(None)
-    return site_timeseries
-
-
-def generate_initial_leaks(program, site):
+def gen_initial_leaks(facility, start_date, n_leaks=None):
     """ Generate initial leaks at a site
 
     Args:
-        program (dict): Program parameter dictionary
-        site (dict): Site parameter and variable dictionary
-
+        facility (dict): Site parameter and variable dictionary
+        n_days (integer): Number of days in timeseries
+        n_leaks (integer): Number of leaks to include on first day at site
     Returns:
         list: List of leaks at a site
     """
-    # Get distribit
-    n_leaks = random.binomial(program['NRd'], program['emissions']['LPR'])
-    prog_start_date = datetime(*program['start_date'])
-    initial_site_leaks = []
-    site.update({'initial_leaks': n_leaks, 'cum_leaks': n_leaks})
+    if n_leaks is None:
+        n_leaks = random.binomial(facility['NRd'], facility['LPR'])
+    # Could add logic allowing users to set the number of initial leaks
+    initial_leaks = []
     leak_count = 0
-    for leak in range(n_leaks):
+    for _ in range(n_leaks):
         leak_count += 1
-        days_active = random.randint(0, high=program['NRd'])
-        leak_start_date = prog_start_date - timedelta(days=days_active)
-        initial_site_leaks.append(
-            generate_leak(program, site, leak_start_date, leak_count, days_active))
-    return initial_site_leaks
+        days_active = random.randint(0, high=facility['NRd'])
+        leak_start_date = start_date - timedelta(days=days_active)
+        initial_leaks.append(generate_leak(facility, leak_start_date, leak_count, days_active))
+    return initial_leaks
+
+
+def gen_leak_timeseries(facility, start_date, n_days, initial_leaks=None):
+    """ Generate a time series of leaks for a single site
+
+    Args:
+        facility (dict): Site parameter and variable dictionary
+        start_date(datetime): Start of timeseries
+        n_days (integer): Number of days in timeseries
+        n_initial_leaks (integer): Number of leaks at site, used for creating id
+
+    Returns:
+        list: Timeseries of leaks at a site
+    """
+    leak_timeseries = initial_leaks
+    leak_count = len(initial_leaks)
+    for t in range(n_days):
+        if random.binomial(1, facility['LPR']):
+            # Generate New Leak
+            leak_count += 1
+            cur_dt = start_date + timedelta(days=t)
+            leak_timeseries.append([generate_leak(facility, cur_dt, leak_count)])
+    return leak_timeseries

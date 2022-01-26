@@ -1,4 +1,4 @@
-version: '2.0'
+version: '2.1'
 parameter_level: 'global'
 input_directory: './inputs'
 output_directory: './outputs'
@@ -12,5 +12,28 @@ start_date: [2017, 1, 1]
 end_date: [2021, 12, 31]
 reference_program: P_OGI
 baseline_program: P_none
-pregenerate_leaks: True
-preseed_random: False
+
+consider_venting: False
+consider_weather: True
+virtual_world:
+  label: "default_sites"
+  weather_file: 'ERA5_2017_2020_AB.nc'
+  infrastructure:
+    facility_samples: "_placeholder_int_"
+    facility_file: 'facility_list_template.csv'
+    facility_type_file: "_placeholder_str_"
+  emissions:
+    leak_dist_params: [-2.776, 1.462]
+    leak_dist_type: 'lognorm'
+    units: ['kilogram', 'hour']
+    leak_file: "_placeholder_str_"
+    leak_file_use: 'sample'
+    LPR: 0.0065
+    NRd: 365
+    max_leak_rate: 100000.0
+    vent_file: 'site_rates.csv'
+  economics:
+    carbon_price_tonnesCO2e: 40.0
+    cost_CCUS: 20.0
+    GWP_CH4: 28.0
+    sale_price_natgas: 3.0

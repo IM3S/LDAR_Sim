@@ -30,7 +30,7 @@ import pandas as pd
 from math import floor
 from weather.daylight_calculator import DaylightCalculatorAve
 from geography.vector import grid_contains_point
-from initialization.leaks import generate_initial_leaks, generate_leak
+from initialization.leaks import generate_leak
 from initialization.sites import generate_sites
 from initialization.update_methods import (est_n_crews, est_site_p_day,
                                            est_t_bw_sites)

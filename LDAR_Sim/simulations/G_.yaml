@@ -4,3 +4,8 @@ version: '2.0'
 pregenerate_leaks: True
 reference_program: P_OGI
 baseline_program: P_none
+n_simulations: 10
+virtual_world:
+  infrastructure:
+    facility_samples: 500
+    facility_type_file: facility_subtypes.csv
