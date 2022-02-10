@@ -292,7 +292,8 @@ class BatchReporting:
 
         # Make plots from list of dataframes - one entry per dataframe
         pn.theme_set(pn.theme_linedraw())
-        plot1 = (pn.ggplot(None) + pn.aes('datetime', 'value', group='program') +
+        plot1 = (pn.ggplot(None) +
+                 pn.aes('datetime', 'value', group='program') +
                  pn.geom_line(df_p1, pn.aes(
                      'datetime', 'value', group='var_prog', colour='program'), size=0.1) +
                  pn.geom_line(df_p1, pn.aes('datetime', 'mean', colour='program'), size=1) +
@@ -306,7 +307,7 @@ class BatchReporting:
                           panel_grid_minor_x=pn.element_blank(),
                           panel_grid_major_x=pn.element_blank(),
                           panel_grid_minor_y=pn.element_line(
-                              colour='black', linewidth=0.5, alpha=0.3),
+                              colour='black', linewidth=0.3, alpha=0.3),
                           panel_grid_major_y=pn.element_line(
                               colour='black', linewidth=1, alpha=0.5))
                  )
@@ -327,94 +328,6 @@ class BatchReporting:
                        colour='black', linewidth=1, alpha=0.5))
                    )
         boxplot.save(self.output_directory / 'emissions_boxplot.png', dpi=900, verbose=False)
-
-        # Build relative mitigation plots
-        dfs_p2 = dfs.copy()
-
-        for i in dfs_p2[1:]:
-            i['mean_dif'] = 0
-            i['std_dif'] = 0
-            i['mean_ratio'] = 0
-            i['std_ratio'] = 0
-            for j in range(len(i)):
-                ref_mean = dfs_p2[0].loc[dfs_p2[0].index[j], 'mean']
-                ref_std = dfs_p2[0].loc[dfs_p2[0].index[j], 'std']
-                alt_mean = i.loc[i.index[j], 'mean']
-                alt_std = i.loc[i.index[j], 'std']
-
-                i.loc[i.index[j], 'mean_dif'] = alt_mean - ref_mean
-                i.loc[i.index[j], 'std_dif'] = math.sqrt(
-                    math.pow(alt_std, 2) + math.pow(ref_std, 2))
-                i.loc[i.index[j], 'mean_ratio'] = alt_mean / ref_mean
-                i.loc[i.index[j], 'std_ratio'] = math.sqrt(
-                    math.pow((alt_std / alt_mean), 2) + math.pow((ref_std / ref_mean), 2))
-
-        # Build plotting dataframe
-        df_p2 = self.dates_trunc.copy().to_frame()
-        df_p2['program'] = dfs_p2[1]['program']
-        df_p2['mean_dif'] = dfs_p2[1]['mean_dif']
-        df_p2['std_dif'] = dfs_p2[1]['std_dif']
-        df_p2['mean_ratio'] = dfs_p2[1]['mean_ratio']
-        df_p2['std_ratio'] = dfs_p2[1]['std_ratio']
-
-        df_p2['low_dif'] = dfs_p2[1]['mean_dif'] - 2 * dfs_p2[1]['std_dif']
-        df_p2['high_dif'] = dfs_p2[1]['mean_dif'] + 2 * dfs_p2[1]['std_dif']
-        df_p2['low_ratio'] = dfs_p2[1]['mean_ratio'] / (dfs_p2[1]
-                                                        ['mean_ratio'] + 2 * dfs_p2[1]['std_ratio'])
-        df_p2['high_ratio'] = dfs_p2[1]['mean_ratio'] + 2 * dfs_p2[1]['std_ratio']
-
-        pd.options.mode.chained_assignment = None
-        for i in dfs_p2[2:]:
-            i['low_dif'] = i['mean_dif'] - 2 * i['std_dif']
-            i['high_dif'] = i['mean_dif'] + 2 * i['std_dif']
-            i['low_ratio'] = i['mean_ratio'] / (i['mean_ratio'] + 2 * i['std_ratio'])
-            i['high_ratio'] = i['mean_ratio'] + 2 * i['std_ratio']
-            short_df = i[['program', 'mean_dif', 'std_dif', 'low_dif',
-                          'high_dif', 'mean_ratio', 'std_ratio', 'low_ratio', 'high_ratio']]
-            short_df['datetime'] = np.array(self.dates_trunc)
-            df_p2 = df_p2.append(short_df, ignore_index=True)
-
-        # Make plot 2
-        plot2 = (pn.ggplot(None) + pn.aes('datetime', 'mean_dif', group='program') +
-                 pn.geom_ribbon(
-                     df_p2, pn.aes(ymin='low_dif', ymax='high_dif', fill='program'), alpha=0.2) +
-                 pn.geom_line(df_p2, pn.aes('datetime', 'mean_dif', colour='program'), size=1) +
-                 pn.ylab('Daily emissions difference (kg/site)') + pn.xlab('') +
-                 pn.scale_colour_hue(h=0.15, l=0.25, s=0.9) +
-                 pn.scale_x_datetime(labels=date_format('%Y')) +
-                 #        pn.scale_y_continuous(trans='log10') +
-                 pn.labs(color='Program', fill='Program') +
-                 pn.theme(panel_border=pn.element_rect(colour="black", fill=None, size=2),
-                          panel_grid_minor_x=pn.element_blank(),
-                          panel_grid_major_x=pn.element_blank(),
-                          panel_grid_minor_y=pn.element_line(
-                              colour='black', linewidth=0.5, alpha=0.3),
-                          panel_grid_major_y=pn.element_line(
-                              colour='black', linewidth=1, alpha=0.5))
-                 )
-        plot2.save(self.output_directory / 'emissions_difference.png',
-                   width=7, height=3, dpi=900, verbose=False)
-
-        # Make plot 3
-        plot3 = (pn.ggplot(None) + pn.aes('datetime', 'mean_ratio', group='program') +
-                 pn.geom_ribbon(df_p2, pn.aes(
-                     ymin='low_ratio', ymax='high_ratio', fill='program'), alpha=0.2) +
-                 pn.geom_hline(yintercept=1, size=0.5, colour='blue') +
-                 pn.geom_line(df_p2, pn.aes('datetime', 'mean_ratio', colour='program'), size=1) +
-                 pn.ylab('Emissions ratio') + pn.xlab('') +
-                 pn.scale_colour_hue(h=0.15, l=0.25, s=0.9) +
-                 pn.scale_x_datetime(labels=date_format('%Y')) +
-                 pn.labs(color='Program', fill='Program') +
-                 pn.theme(panel_border=pn.element_rect(colour="black", fill=None, size=2),
-                          panel_grid_minor_x=pn.element_blank(),
-                          panel_grid_major_x=pn.element_blank(),
-                          panel_grid_minor_y=pn.element_line(
-                              colour='black', linewidth=0.5, alpha=0.3),
-                          panel_grid_major_y=pn.element_line(
-                              colour='black', linewidth=1, alpha=0.5))
-                 )
-        plot3.save(self.output_directory / 'emissions_ratio.png',
-                   width=7, height=3, dpi=900, verbose=False)
 
         # ---------------------------------------
         # ------ Figure to compare costs  ------

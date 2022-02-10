@@ -82,7 +82,7 @@ def clean_sim_df(sim_results, df,  index='index', params=[], aggregate=True, add
     prog_objs = prog_objs.astype({obj['out']: obj['type'] for obj in params if 'type' in obj})
     if aggregate:
         # This will average values from different sims
-        prog_objs = prog_objs.groupby([index, 'program_name']).mean().reset_index()
+        prog_objs = prog_objs.groupby(['program_name']).mean().reset_index()
     # split up dataframe into list of dataframs by program name
     return prog_objs
 
@@ -123,7 +123,7 @@ def agg_flatten(df, group_by, agg_cols=None, agg_types=["mean"],
                             - common functions 'mean', numpy.median, 'sum', 'count'
         prefix (string, optional): A prefix that is assigned to all agg_cols. Defaults to None.
                                     ie. if agg_cols = ['ID', 'shape'] and prefix = 'fun' then
-                                    the output columns will include 'fun_ID', 'fun_shape'. 
+                                    the output columns will include 'fun_ID', 'fun_shape'.
                                     does not apply on the group by columns
         include_col_name (bool, optional): Include original column name. Defaults to True.
         include_agg_name (bool, optional): Include the aggregation name. Defaults to False.

@@ -110,10 +110,10 @@ if __name__ == '__main__':
             print('No reference or base program input...skipping batch reporting and economics.')
 
     # Generate output table
-    out_prog_table = gen_prog_table(sim_outputs, base_program, programs)
+    # out_prog_table = gen_prog_table(sim_outputs, base_program, programs)
 
-    with open(out_dir / 'prog_table.json', 'w') as fp:
-        json.dump(out_prog_table, fp)
+    # with open(out_dir / 'prog_table.json', 'w') as fp:
+    #     json.dump(out_prog_table, fp)
 
     # Write program metadata
     metadata = open(out_dir / '_metadata.txt', 'w')

@@ -44,7 +44,7 @@ def make_plots(leak_df, time_df, site_df, sim_n, output_directory):
             panel_border=pn.element_rect(colour="black", fill=None, size=2),
             panel_grid_minor_x=pn.element_blank(),
             panel_grid_major_x=pn.element_blank(),
-            panel_grid_minor_y=pn.element_line(colour='black', linewidth=0.5, alpha=0.3),
+            panel_grid_minor_y=pn.element_line(colour='black', linewidth=0.3, alpha=0.3),
             panel_grid_major_y=pn.element_line(colour='black', linewidth=1, alpha=0.5))
     )
 
