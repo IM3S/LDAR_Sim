@@ -1,0 +1,6 @@
+# LPR: [1, 2, 5]
+# NRd: [100, 200, 300, 400]
+LPR: [1, 5, 10]
+NRd: [120, 240, 360]
+LPR_style: ['solid', 'dashed', 'dotted', 'dashdot']
+NRd_style: ['blue',  'green', 'orange', 'skyblue']

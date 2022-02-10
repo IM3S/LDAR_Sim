@@ -1,0 +1,7 @@
+
+parameter_level: global
+version: '2.0'
+n_simulations: 10
+pregenerate_leaks: False
+reference_program: P_none
+baseline_program: P_none
